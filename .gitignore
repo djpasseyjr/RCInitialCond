@@ -1,3 +1,14 @@
+# Latex
+*.aux
+*.bbl
+*.blg
+*.cls
+*.dvi
+*.synctex.gz
+
+# Other Files
+.DS_Store
+
 # Data Files
 *.pkl
 *.npy
