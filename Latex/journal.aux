@@ -1,0 +1,72 @@
+\relax 
+\citation{Pathak2018Phys}
+\citation{Pathak2018Chaos}
+\citation{Vlachas2020}
+\citation{Ott2018}
+\citation{Jaeger2001}
+\citation{Maass2002}
+\citation{Tanaka2019}
+\citation{Fernando2003}
+\citation{Bianchi2020}
+\citation{Rafayelyan2020}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {I-A}}Reservoir Computers: An Accessible Machine Learning Model}{1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {I-B}}Chaotic Systems}{1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {I-C}}Prediction of Complex Systems}{1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Standard Reservoir Computer Training}{1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {An untrained reservoir computer driven by an input signal}}}{1}\protected@file@percent }
+\newlabel{untrained}{{1}{1}}
+\citation{Haluszczynski2019}
+\citation{Haluszczynski2019}
+\citation{Griffith2019}
+\citation{Pecora2019}
+\citation{Kawai2019}
+\citation{Ott2018}
+\newlabel{tikhanov}{{2}{2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {An trained reservoir approximating the training signal without any input}}}{2}\protected@file@percent }
+\newlabel{trained}{{3}{2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {II-A}}Problems with Existing Training Techniques}{2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Proposed Training Methodology}{2}\protected@file@percent }
+\newlabel{trueinitial}{{III}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Standard reservoir computer prediction of the Lorenz system from an arbitrary initial condition $\mathbf  {u}_0$ on the attractor. The true evolution of $\mathbf  {u}_0$ is pictured in gray. The reservoir computer prediction wanders through space for some time before settling on the attractor. Though the reservoir captures the "climate" of the Lorenz system it fails to predict the orbit of $\mathbf  {u}_0$. (For this plot, the reservoir initial state was set to $W_\text  {out}^\dagger \mathbf  {u}_0$.) }}{3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {III-A}}Reservoir Node Fixed Points}{3}\protected@file@percent }
+\newlabel{onenode}{{4}{3}}
+\newlabel{tanh}{{\unhbox \voidb@x \hbox {III-A}}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {Attracting fixed point of a reservoir node with $\qopname  \relax o{tanh}$ non-linearity.} In an untrained reservoir, the value of \textit  {a} varies with the state of the training signal $\mathbf  {u}(t)$. Therefore, the reservoir node system will have a single attracting fixed point whose location changes according to the training signal. Thus, the reservoir node will "follow" the movement of this fixed point through space as $\mathbf  {u}(t)$ evolves. However, no matter the value of $\mathbf  {u}(t)$, this point will always lie in [-1, 1]. (Analysis of a sigmoidal activation function is similar.)}}{3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {III-B}}Stability of Reservoir Node Fixed Points}{3}\protected@file@percent }
+\newlabel{stability}{{5}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {III-C}}A Note on Linearly Independent Node States}{3}\protected@file@percent }
+\newlabel{sin}{{\unhbox \voidb@x \hbox {III-B}}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \textbf  {Fixed Points of a reservoir node With a $\qopname  \relax o{sin}$ non-linearity.} Fixed points in blue are attracting, fixed points in red are repelling. In the decoupled system, as the spectral radius increases, the number of fixed points will also increase. Unlike $\qopname  \relax o{tanh}(x)$ or a sigmoidal activation function, $sin(x)$ can produce more than one fixed point which may be attracting or repelling. Combining this with the fact that $a$ changes as the training signal $\mathbf  {u}(t)$ changes, creates a system of moving attracting and repelling fixed points.}}{4}\protected@file@percent }
+\newlabel{sinattractor}{{\unhbox \voidb@x \hbox {III-C}}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces \textbf  {Example of reservoir nodes behaving chaotically in the absence of input with a sinusoidal activation function.} Due to the mix of attracting and repelling fixed points in a reservoir computer with a $\qopname  \relax o{sin}(x)$ activation function, it is not hard to create a system of reservoir nodes that behave chaotically, even without input from the training signal.}}{4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Algorithm}{4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {IV-A}}Fixed Point Initial Condition}{4}\protected@file@percent }
+\citation{RNNCompare}
+\citation{Thomas}
+\citation{Lorenz}
+\citation{Rossler}
+\newlabel{table:results}{{\unhbox \voidb@x \hbox {IV-B}}{5}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Results of testing the proposed algorithm on three chaotic systems.}}{5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {IV-B}}Window Training}{5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Results}{5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces \textbf  {Chaotic systems used to test reservoir prediction from random initial points on the attractor.} In order from left to right, the Rossler attractor, Thomas' cyclically symmetric attractor, the Lorenz attractor.}}{5}\protected@file@percent }
+\bibstyle{IEEEtran}
+\bibdata{bibliography}
+\bibcite{Pathak2018Phys}{1}
+\bibcite{Pathak2018Chaos}{2}
+\bibcite{Vlachas2020}{3}
+\bibcite{Ott2018}{4}
+\bibcite{Jaeger2001}{5}
+\bibcite{Maass2002}{6}
+\bibcite{Tanaka2019}{7}
+\bibcite{Fernando2003}{8}
+\bibcite{Bianchi2020}{9}
+\bibcite{Rafayelyan2020}{10}
+\bibcite{Haluszczynski2019}{11}
+\bibcite{Griffith2019}{12}
+\bibcite{Pecora2019}{13}
+\bibcite{Kawai2019}{14}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Hyper Parameters}}{6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Conclusion}{6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{6}\protected@file@percent }
