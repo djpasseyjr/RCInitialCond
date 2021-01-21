@@ -1,4 +1,4 @@
-# RCAlgorithm Blueprint:
+# RCInitialCond:
 
 ## Summary
 
