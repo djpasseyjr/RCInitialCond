@@ -71,4 +71,4 @@ for trial in study:
                               objective=acc)
     study.finalize(trial)
     
-study.save(f"/Users/djpassey/Data/RCAlgorithm/Hyperparameter/{system}")
+    study.save(f"/Users/djpassey/Data/RCAlgorithm/Hyperparameter/{system}")
