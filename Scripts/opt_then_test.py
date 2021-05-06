@@ -9,14 +9,14 @@ import pickle as pkl
 # Choose PREDICTION_TYPE from ["continue", "random"]
 # Choose METHOD from ["standard", "augmented"]
 
-SYSTEM = sys.argv[1] 
+SYSTEM = sys.argv[1]
 MAP_INITIAL = sys.argv[2]
 PREDICTION_TYPE = sys.argv[3]
 METHOD = sys.argv[4]
 EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
 
 ### Constants
-DATADIR = "loc/of/data" # Contains priors and soft robot data
+DATADIR = "../Data/" # Contains priors and soft robot data
 BIG_ROBO_DATA = "bellows_arm1_whitened.mat"
 SMALL_ROBO_DATA = "bellows_arm_whitened.mat"
 VPTTOL = 0.5 # Valid prediction time error tolerance
@@ -27,16 +27,18 @@ NSAVED_ORBITS = 25
 LYAP_REPS = 10
 
 # Time Steps for chaotic systems
-DT = { 
+DT = {
     "lorenz": 0.01,
     "rossler": 0.01,
     "thomas": 0.1
 }
-DURATION = { 
+# Max orbit time
+DURATION = {
     "lorenz": 10,
     "rossler": 150,
     "thomas": 1000
 }
+# Parameters to optimize in the reservoir computer
 RES_OPT_PRMS = [
     "sigma",
     "gamma",
@@ -44,13 +46,17 @@ RES_OPT_PRMS = [
     "spect_rad",
     "mean_degree"
 ]
+# Window training algorithm parameters
 METHOD_PRMS = [
     "window",
     "overlap"
 ]
+# Additional Soft Robot Parameter
 ROBO_OPT_PRMS = [
     "delta"
 ]
+
+# Default reservoir computer hyper parameters
 RES_DEFAULTS = {
     "res_sz":1000,
     "activ_f": lambda x: 1/(1+np.exp(-1*x)),
@@ -62,12 +68,35 @@ RES_DEFAULTS = {
     "batchsize":2000,
     "map_initial":MAP_INITIAL
 }
+
+# Soft robot default parameters
 ROBO_DEFAULTS = {
     "signal_dim":6,
     "drive_dim":6
 }
 
 ### Function definitions
+
+# TODO: Store previous best parameters that can be parsed by sherpa.
+# These parameters are used as a prior for the bayesian optimization.
+# Decent parameters for each chaotic system are stored in rc.SYSTEMS
+# A good prior for the softrobot system is:
+# ROBO_PRIOR = {
+# "res_sz":1000,
+# "activ_f": lambda x: 1/(1+np.exp(-1*x)), "sparse_res":True, "uniform_weights":True,
+# "signal_dim":6,
+# "max_weight":2,
+# "min_weight":0,
+# "batchsize":2000,
+# "drive_dim":6,
+# 'delta': 0.3736117214,
+# 'gamma': 18.66636932,
+# 'mean_degree': 1.7242465519999999, 'ridge_alpha': 1.268554237,
+# 'sigma': 0.3125062064,
+# 'spect_rad': 0.8922393143999999, 'map_initial': "activ_f"
+# }
+# Basically change loadprior function to produce the parameters given above
+# in a format that sherpa can read
 
 def loadprior(system):
     """Load best parameters from random searches (Computed previously)"""
@@ -86,10 +115,13 @@ def load_robo(filename):
 def random_slice(*args, axis=0):
     """ Take a random slice of an arbitrary number of arrays from the same index
         Parameters:
-        As[:] (ndarrays): Arbitrary number of arrays with the same size along the given axis
-        slicesize (int): Size of random slice must be smaller than the size of the 
-            arrays along given axis
-        axis (int): Axis to slice. Can be 0 or 1.
+            As (ndarrays): Arbitrary number of arrays with the same size along the given axis
+            slicesize (int): Size of random slice must be smaller than the size of the
+                arrays along given axis
+        Keyword Parameters:
+            axis (int): Axis to slice. Can be 0 or 1.
+        Returns
+            slices (tuple): A tuple of slices from each array
     """
     As, slicesize = args[:-1], args[-1]
     start = np.random.randint(0, high=len(As[0]) - slicesize + 1)
@@ -101,7 +133,7 @@ def random_slice(*args, axis=0):
         if axis == 1:
             slices += (A[:, start:end],)
     return slices
-    
+
 def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     """Split robot data into training and test chunks """
     t, U, D = load_robo(BIG_ROBO_DATA)
@@ -112,7 +144,7 @@ def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     Dtr, Dts = D[:split_idx, :], D[split_idx:, :]
     if test == "random":
         t, U, D = load_robo(SMALL_ROBO_DATA)
-        test_timesteps = timesteps - isplit_dx            
+        test_timesteps = timesteps - isplit_dx
         ts, Uts, Dts = random_slice(t, U, D, test_timesteps)
     return tr, (Utr, Dtr), (ts, Dts), Uts
 
@@ -132,7 +164,12 @@ def train_test_data(system, trainper=0.66, test="continue"):
         return chaos_train_test_split(system, duration=DURATION[system], trainper=trainper, dt=DT[system], test=test)
 
 def nrmse(true, pred):
-    """ Two mxn arrays. Axis zero is assumed to be the time axis (m time steps)"""
+    """ Normalized root mean square error. (A metric for measuring difference in orbits)
+    Parameters:
+        Two mxn arrays. Axis zero is assumed to be the time axis (i.e. there are m time steps)
+    Returns:
+        err (ndarray): Error at each time value. 1D array with m entries
+    """
     sig = np.std(true, axis=0)
     err = np.mean( (true - pred)**2 / sig)**.5
     return err
@@ -145,7 +182,16 @@ def valid_prediction_index(err, tol):
     return i
 
 def trained_rcomp(system, tr, Utr, resprms, methodprms):
-    """ Returns a reservoir computer trained with the given data and parameters"""
+    """ Returns a reservoir computer trained with the given data and parameters
+    Parameters:
+        system (str): Name of the system
+        tr (ndarray): 1D array of m equally spaced  time values
+        Utr (ndarray): mxn 2D array of training signal states
+        resparams (dict): Reservoir computer hyperparameters
+        methodprms (dict): Training method parameters
+    Returns:
+        rcomp (ResComp): Trained reservoir computer
+    """
     if system == "softrobo":
         rcomp = rc.DrivenResComp(**resprms)
         rcomp.train(tr, *Utr, **methodprms)
@@ -155,13 +201,22 @@ def trained_rcomp(system, tr, Utr, resprms, methodprms):
     return rcomp
 
 def rcomp_prediction(system, rcomp, predargs, init_cond):
+    """ Make a prediction with the given system
+    Parameters:
+        system (str): Name of the system to predict
+        rcomp (ResComp): Trained reservoir computer
+        predargs (variable length arguments): Passed directly into rcomp.predict
+        init_cond (dict): Keyword args passed rcomp.predict
+    Returns:
+        pre (ndarray): Reservoir computer prediction
+    """
     if system == "softrobo":
         pre = rcomp.predict(*predargs, **init_cond)
     else:
         pre = rcomp.predict(predargs, **init_cond)
-        
+
 def make_initial(pred_type, rcomp, Uts):
-    """ Create initial condition for the type of prediction. Either create a reservoir node 
+    """ Create initial condition for the type of prediction. Either create a reservoir node
         initial condition or use a state space initial condition.
     """
     if pred_type == "continue":
@@ -170,7 +225,7 @@ def make_initial(pred_type, rcomp, Uts):
     else:
         # Use the state space initial condition. (Reservoir will map it to a reservoir node condition)
         return {"u0": Uts[0]}
-    
+
 def build_params(opt_prms):
     """ Extract training method parameters and augment reservoir parameters with defaults.
         Parameters
@@ -188,25 +243,25 @@ def build_params(opt_prms):
     if SYSTEM == "softrobo":
         resprms = {**ROBO_DEFAULTS, **resprms} # Updates signal_dim and adds drive_dim
     return resprms, methodprms
-            
+
 def vpt(*args, **kwargs):
     """ Compute the valid prediction time for a set of parameters
-    
+
         Parameters:
         -----------
         system (str): The name of the system from which to generate training data.
             One of: `["lorenz", "rossler", "thomas", "softrobo"]`
-        pred_type: Predict continuation of training trajectory or predict evolution 
+        pred_type: Predict continuation of training trajectory or predict evolution
             of a random initial condition. One of: `["continue", "random"]`
         method: Training methodology. One of `["standard", "aumented"]`
-        
+
         The keyword arguments should be parameters from the optimizer (`trial.parameters`),
         parsed by `build_params`.
-        
+
         Returns:
         -------
-        vptime (float): Time in seconds that the reservoir computer was able to predict the 
-            evolution of the given system with in a fixed tolerance (`VPTOL`) of error. 
+        vptime (float): Time in seconds that the reservoir computer was able to predict the
+            evolution of the given system with in a fixed tolerance (`VPTOL`) of error.
     """
     system, pred_type, method = args
     # Build train and test data. Soft robot data includes driving signal in Utr and ts.
@@ -224,12 +279,14 @@ def vpt(*args, **kwargs):
     return vptime
 
 def mean_vpt(*args, **kwargs):
+    """ Average valid prediction time across OPT_VPT_REPS repititions """
     tot_vpt = 0
     for i in range(OPT_VPT_REPS):
         tot_vpt += vpt(*args, **kwargs)
     return tot_vpt/OPT_VPT_REPS
 
 def meanlyap(rcomp, r0, ts, pert_size=1e-6):
+    """ Average lyapunov exponent across LYAP_REPS repititions """
     lam = 0
     for i in range(LYAP_REPS):
         r0 = init_cond["r0"]
@@ -260,31 +317,34 @@ if SYSTEM == "softrobo":
     parameters += roboprms
 
 # Bayesian hyper parameter optimization
-randoptprms = loadprior(SYSTEM)
-algorithm = sherpa.algorithms.GPyOpt(max_num_trials=OPT_NTRIALS, initial_data_points=randoptprms)
+priorprms = loadprior(SYSTEM)
+algorithm = sherpa.algorithms.GPyOpt(max_num_trials=OPT_NTRIALS, initial_data_points=priorprms)
 study = sherpa.Study(parameters=parameters,
                  algorithm=algorithm,
                  lower_is_better=False)
 
 for trial in study:
-    vpt = mean_vpt(*EXPERIMENT, **trial.parameters)
+    vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters))
     study.add_observation(trial=trial,
                           iteration=iteration,
                           objective=vpt)
     study.finalize(trial)
     study.save(DATADIR + system) # Need separate directories for each method etc
-    
+
 ### Choose the best hyper parameters
-bestprms = study.##best()
+# TODO: Figure out how to parse the output of study.get_best_result()
+# So that they can be passed into build_params. Basically convert a dataframe
+# into a dictionary.
+optimized_hyperprms = study.get_best_result()
 
 ### Test the training method
 results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
 
 for k in range(NSAVED_ORBITS):
     tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="continue")
-    resprms, methodprms = build_params(kwargs)
+    resprms, methodprms = build_params(optimized_hyperprms)
     rcomp = trained_rcomp(system, tr, Utr, resprms, methodprms)
-    
+
     ## Continued Prediction
     init_cond = make_initial("continue", rcomp, Uts)
     pre = rcomp_prediction(SYSTEM, rcomp, ts)
@@ -294,11 +354,11 @@ for k in range(NSAVED_ORBITS):
     vptime = ts[idx-1] - ts[0]
     results["continue"].append(vptime)
     ## Continued Derivative fit
-    if SYSTEM != "softrobo"
-    err = rc.system_fit_error(ts, pre, SYSTEM)
-    trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
-    results["cont_deriv_fit"].append((trueerr, err))
-    
+    if SYSTEM != "softrobo":
+        err = rc.system_fit_error(ts, pre, SYSTEM)
+        trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
+        results["cont_deriv_fit"].append((trueerr, err))
+
     ## Random Prediction
     tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="random")
     init_cond = make_initial("random", rcomp, Uts)
@@ -312,7 +372,7 @@ for k in range(NSAVED_ORBITS):
     err = rc.system_fit_error(ts, pre, SYSTEM)
     trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
     results["rand_deriv_fit"].append((trueerr, err))
-    
+
     ## Lyapunov Exponent Estimation
     lam = 0
     for i in range(LYAP_REPS):
@@ -322,3 +382,6 @@ for k in range(NSAVED_ORBITS):
         i = rc.accduration(pre, predelta)
         lam += rc.lyapunov(ts[:i], pre[:i, :], predelta[:i, :], delta0)
     results["cont_lyap"].append(lam / LYAP_REPS)
+
+    # TODO: Save results dictionary with a unique name
+    # pkl.dump("unique_name.pkl", results)
