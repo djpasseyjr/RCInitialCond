@@ -8,7 +8,7 @@ Instead of training reservoir computers on a stream of continuous data, break up
 
 ## Getting Started
 
-Navigate to `Notebooks/GettingStarted/GettingStarted.md` for instructions on getting the project working on your local machine.
+Navigate to `Notebooks/GettingStarted/README.md` for instructions on getting the project working on your local machine.
 
 ## Plan
 
