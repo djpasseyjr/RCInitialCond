@@ -6,6 +6,10 @@ Instead of training reservoir computers on a stream of continuous data, break up
 
 ![Algorithm Example](Latex/Images/algoexample.png)
 
+## Getting Started
+
+Navigate to `Notebooks/GettingStarted/README.md` for instructions on getting the project working on your local machine.
+
 ## Plan
 
 **To Do**
