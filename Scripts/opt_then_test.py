@@ -107,16 +107,16 @@ def loadprior(system):
     #As far as I can tell, the sherpa function we're giving this to 
     #   wants a list of hyperparameter dictionaries, or a pandas.Dataframe
     #   object of unknown formatting
-    file = open(f"{system}_prior.pkl", "rb")
-    priorprms = pkl.load(file)
-    if type(priorprms) is dict:
-        #Wrap it in a list
-        return [priorprms]
-    elif type(priorprms) is list:
-        return priorprms
-    else:
-        print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
-        return []
+    with open(f"{system}_prior.pkl", "rb") as file:
+        priorprms = pkl.load(file)
+        if type(priorprms) is dict:
+            #Wrap it in a list
+            return [priorprms]
+        elif type(priorprms) is list:
+            return priorprms
+        else:
+            print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
+    return []
 
 def load_robo(filename):
     """Load soft robot order"""
