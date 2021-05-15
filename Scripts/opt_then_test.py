@@ -115,6 +115,7 @@ def loadprior(system):
     elif type(priorprms) is list:
         return priorprms
     else:
+        print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
         return []
 
 def load_robo(filename):
@@ -227,6 +228,7 @@ def rcomp_prediction(system, rcomp, predargs, init_cond):
         pre = rcomp.predict(*predargs, **init_cond)
     else:
         pre = rcomp.predict(predargs, **init_cond)
+    return pre
 
 def make_initial(pred_type, rcomp, Uts):
     """ Create initial condition for the type of prediction. Either create a reservoir node
