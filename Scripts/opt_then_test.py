@@ -99,10 +99,23 @@ ROBO_DEFAULTS = {
 # in a format that sherpa can read
 
 def loadprior(system):
-    """Load best parameters from random searches (Computed previously)"""
+    """Load best parameters from random searches (Computed previously).
+    Parameters:
+        system (string): name of the system type being used
+    Returns:
+        priorprms (List of dictionaries): sets of hyperparameters known to be good"""
+    #As far as I can tell, the sherpa function we're giving this to 
+    #   wants a list of hyperparameter dictionaries, or a pandas.Dataframe
+    #   object of unknown formatting
     file = open(f"{system}_prior.pkl", "rb")
     priorprms = pkl.load(file)
-    return priorprms
+    if type(priorprms) is dict:
+        #Wrap it in a list
+        return [priorprms]
+    elif type(priorprms) is list:
+        return priorprms
+    else:
+        return []
 
 def load_robo(filename):
     """Load soft robot order"""
