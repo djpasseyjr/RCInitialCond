@@ -244,12 +244,19 @@ def make_initial(pred_type, rcomp, Uts):
         # Use the state space initial condition. (Reservoir will map it to a reservoir node condition)
         return {"u0": Uts[0]}
 
-def build_params(opt_prms):
+def build_params(opt_prms, combine=False):
     """ Extract training method parameters and augment reservoir parameters with defaults.
         Parameters
         ----------
         opt_prms (dict): Dictionary of parameters from the optimizer
+        combine (bool): default False; whether to return all parameters as a single dictionary
     """
+    if combine:
+        if SYSTEM == "softrobo":
+            return {**ROBO_DEFAULTS, **opt_prms, **RES_DEFAULTS}
+        else:
+            return {**opt_prms, **RES_DEFAULTS}
+            
     resprms = {}
     methodprms = {}
     for k in opt_prms.keys():
@@ -345,7 +352,7 @@ study = sherpa.Study(parameters=parameters,
                  lower_is_better=False)
 
 for trial in study:
-    exp_vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters))
+    exp_vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters, combine=True))
     study.add_observation(trial=trial,
                           objective=exp_vpt)
     study.finalize(trial)
