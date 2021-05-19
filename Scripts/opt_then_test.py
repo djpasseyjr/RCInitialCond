@@ -315,6 +315,7 @@ def meanlyap(rcomp, r0, ts, pert_size=1e-6):
     results["cont_lyap"].append(lam / LYAP_REPS)
 
 ### Optimize hyperparameters
+param_names = RES_OPT_PRMS
 parameters = [
     sherpa.Continuous(name='gamma', range=[0.1, 25], ),
     sherpa.Continuous(name='sigma', range=[0.01, 5.0]),
@@ -331,8 +332,10 @@ roboprms = [
 ]
 if METHOD == "augmented":
     parameters += augmentedprms
+    param_names += METHOD_PRMS
 if SYSTEM == "softrobo":
     parameters += roboprms
+    param_names += ROBO_OPT_PRMS
 
 # Bayesian hyper parameter optimization
 priorprms = loadprior(SYSTEM)
@@ -349,10 +352,12 @@ for trial in study:
     study.save(DATADIR + SYSTEM) # Need separate directories for each method etc
 
 ### Choose the best hyper parameters
-# TODO: Figure out how to parse the output of study.get_best_result()
-# So that they can be passed into build_params. Basically convert a dataframe
-# into a dictionary.
+# For some reason this function actually just returns a dictionary, 
+#   which makes our job easier.
 optimized_hyperprms = study.get_best_result()
+# Trim to only have the actual parameters
+optimized_hyperprms = {key:optimized_hyperprms[key] for key in param_names}
+
 
 ### Test the training method
 results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
