@@ -99,10 +99,25 @@ ROBO_DEFAULTS = {
 # in a format that sherpa can read
 
 def loadprior(system):
-    """Load best parameters from random searches (Computed previously)"""
-    file = open(f"{system}_prior.pkl", "rb")
-    priorprms = pkl.load(file)
-    return priorprms
+    """Load best parameters from random searches (Computed previously).
+    Parameters:
+        system (string): name of the system type being used
+    Returns:
+        priorprms (List of dictionaries): sets of hyperparameters known to be good"""
+    #As far as I can tell, the sherpa function we're giving this to 
+    #   wants a list of hyperparameter dictionaries, or a pandas.Dataframe
+    #   object of unknown formatting
+    with open(f"{system}_prior.pkl", "rb") as file:
+        priorprms = pkl.load(file)
+        if type(priorprms) is dict:
+            #Wrap it in a list
+            return [priorprms]
+        elif type(priorprms) is list:
+            return priorprms
+        else:
+            print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
+    #Return an empty list if we failed to load anything
+    return []
 
 def load_robo(filename):
     """Load soft robot order"""
@@ -214,6 +229,7 @@ def rcomp_prediction(system, rcomp, predargs, init_cond):
         pre = rcomp.predict(*predargs, **init_cond)
     else:
         pre = rcomp.predict(predargs, **init_cond)
+    return pre
 
 def make_initial(pred_type, rcomp, Uts):
     """ Create initial condition for the type of prediction. Either create a reservoir node
@@ -326,7 +342,6 @@ study = sherpa.Study(parameters=parameters,
 for trial in study:
     vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters))
     study.add_observation(trial=trial,
-                          iteration=iteration,
                           objective=vpt)
     study.finalize(trial)
     study.save(DATADIR + system) # Need separate directories for each method etc
