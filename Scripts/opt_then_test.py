@@ -116,6 +116,7 @@ def loadprior(system):
             return priorprms
         else:
             print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
+    #Return an empty list if we failed to load anything
     return []
 
 def load_robo(filename):
@@ -341,7 +342,6 @@ study = sherpa.Study(parameters=parameters,
 for trial in study:
     vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters))
     study.add_observation(trial=trial,
-                          iteration=iteration,
                           objective=vpt)
     study.finalize(trial)
     study.save(DATADIR + system) # Need separate directories for each method etc
