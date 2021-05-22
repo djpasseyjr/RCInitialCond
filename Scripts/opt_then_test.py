@@ -1,7 +1,9 @@
-!#/bin/python3
+#!/bin/python3
 import sys
 import sherpa
 import pickle as pkl
+import numpy as np
+import rescomp as rc
 
 ### Script arguments
 # Choose SYSTEM from ["lorenz", "rossler", "thomas", "softrobo"]
@@ -168,7 +170,7 @@ def chaos_train_test_split(system, duration=10, trainper=0.66, dt=0.01, test="co
     tr, Utr, ts, Uts = rc.train_test_orbit(system, duration=duration, trainper=trainper)
     if test == "random":
         test_duration = trainper * duration
-        ts, Uts = tc.orbit(system, duration=test_duration, trim=True)
+        ts, Uts = rc.orbit(system, duration=test_duration, trim=True)
     return tr, Utr, ts, Uts
 
 def train_test_data(system, trainper=0.66, test="continue"):
@@ -186,7 +188,7 @@ def nrmse(true, pred):
         err (ndarray): Error at each time value. 1D array with m entries
     """
     sig = np.std(true, axis=0)
-    err = np.mean( (true - pred)**2 / sig)**.5
+    err = np.mean( (true - pred)**2 / sig, axis=0)**.5
     return err
 
 def valid_prediction_index(err, tol):
@@ -212,7 +214,7 @@ def trained_rcomp(system, tr, Utr, resprms, methodprms):
         rcomp.train(tr, *Utr, **methodprms)
     else:
         rcomp = rc.ResComp(**resprms)
-        rcomp.train(tr, Uts, **methodprms)
+        rcomp.train(tr, Utr, **methodprms)
     return rcomp
 
 def rcomp_prediction(system, rcomp, predargs, init_cond):
@@ -242,12 +244,19 @@ def make_initial(pred_type, rcomp, Uts):
         # Use the state space initial condition. (Reservoir will map it to a reservoir node condition)
         return {"u0": Uts[0]}
 
-def build_params(opt_prms):
+def build_params(opt_prms, combine=False):
     """ Extract training method parameters and augment reservoir parameters with defaults.
         Parameters
         ----------
         opt_prms (dict): Dictionary of parameters from the optimizer
+        combine (bool): default False; whether to return all parameters as a single dictionary
     """
+    if combine:
+        if SYSTEM == "softrobo":
+            return {**ROBO_DEFAULTS, **opt_prms, **RES_DEFAULTS}
+        else:
+            return {**opt_prms, **RES_DEFAULTS}
+            
     resprms = {}
     methodprms = {}
     for k in opt_prms.keys():
@@ -255,7 +264,7 @@ def build_params(opt_prms):
             methodprms[k] = opt_prms[k]
         else:
             resprms[k] = opt_prms[k]
-    resprms = {**resprms, **DEFAULTS}
+    resprms = {**resprms, **RES_DEFAULTS}
     if SYSTEM == "softrobo":
         resprms = {**ROBO_DEFAULTS, **resprms} # Updates signal_dim and adds drive_dim
     return resprms, methodprms
@@ -287,7 +296,7 @@ def vpt(*args, **kwargs):
     rcomp = trained_rcomp(system, tr, Utr, resprms, methodprms)
     # Create prediction initial condition and then predict
     init_cond = make_initial(pred_type, rcomp, Uts)
-    pre = rcomp_prediction(system, rcomp, ts)
+    pre = rcomp_prediction(system, rcomp, ts, init_cond)
     # Compute error and deduce valid prediction time
     err = nrmse(Uts, pre)
     idx = valid_prediction_index(err, VPTTOL)
@@ -313,6 +322,7 @@ def meanlyap(rcomp, r0, ts, pert_size=1e-6):
     results["cont_lyap"].append(lam / LYAP_REPS)
 
 ### Optimize hyperparameters
+param_names = RES_OPT_PRMS
 parameters = [
     sherpa.Continuous(name='gamma', range=[0.1, 25], ),
     sherpa.Continuous(name='sigma', range=[0.01, 5.0]),
@@ -322,15 +332,17 @@ parameters = [
 ]
 augmentedprms = [
     sherpa.Continuous(name='window', range=[0.1, 10]),
-    sherpa.Discrete(name='overlap', range=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9 0.95])
+    sherpa.Discrete(name='overlap', range=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95])
 ]
 roboprms = [
     sherpa.Continuous(name='delta', range=[0.01, 5.0]),
 ]
 if METHOD == "augmented":
     parameters += augmentedprms
+    param_names += METHOD_PRMS
 if SYSTEM == "softrobo":
     parameters += roboprms
+    param_names += ROBO_OPT_PRMS
 
 # Bayesian hyper parameter optimization
 priorprms = loadprior(SYSTEM)
@@ -340,17 +352,19 @@ study = sherpa.Study(parameters=parameters,
                  lower_is_better=False)
 
 for trial in study:
-    vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters))
+    exp_vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters, combine=True))
     study.add_observation(trial=trial,
-                          objective=vpt)
+                          objective=exp_vpt)
     study.finalize(trial)
-    study.save(DATADIR + system) # Need separate directories for each method etc
+    study.save(DATADIR + SYSTEM) # Need separate directories for each method etc
 
 ### Choose the best hyper parameters
-# TODO: Figure out how to parse the output of study.get_best_result()
-# So that they can be passed into build_params. Basically convert a dataframe
-# into a dictionary.
+# For some reason this function actually just returns a dictionary, 
+#   which makes our job easier.
 optimized_hyperprms = study.get_best_result()
+# Trim to only have the actual parameters
+optimized_hyperprms = {key:optimized_hyperprms[key] for key in param_names}
+
 
 ### Test the training method
 results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
@@ -358,7 +372,7 @@ results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_de
 for k in range(NSAVED_ORBITS):
     tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="continue")
     resprms, methodprms = build_params(optimized_hyperprms)
-    rcomp = trained_rcomp(system, tr, Utr, resprms, methodprms)
+    rcomp = trained_rcomp(SYSTEM, tr, Utr, resprms, methodprms)
 
     ## Continued Prediction
     init_cond = make_initial("continue", rcomp, Uts)
@@ -383,10 +397,10 @@ for k in range(NSAVED_ORBITS):
     vptime = ts[idx-1] - ts[0]
     results["random"].append(vptime)
     ## Random Derivative fit
-    if SYSTEM != "softrobo"
-    err = rc.system_fit_error(ts, pre, SYSTEM)
-    trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
-    results["rand_deriv_fit"].append((trueerr, err))
+    if SYSTEM != "softrobo":
+        err = rc.system_fit_error(ts, pre, SYSTEM)
+        trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
+        results["rand_deriv_fit"].append((trueerr, err))
 
     ## Lyapunov Exponent Estimation
     lam = 0
