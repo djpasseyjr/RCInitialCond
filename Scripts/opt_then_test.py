@@ -109,15 +109,19 @@ def loadprior(system):
     #As far as I can tell, the sherpa function we're giving this to 
     #   wants a list of hyperparameter dictionaries, or a pandas.Dataframe
     #   object of unknown formatting
-    with open(f"{system}_prior.pkl", "rb") as file:
-        priorprms = pkl.load(file)
-        if type(priorprms) is dict:
-            #Wrap it in a list
-            return [priorprms]
-        elif type(priorprms) is list:
-            return priorprms
-        else:
-            print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
+    try:
+        with open(f"{system}_prior.pkl", "rb") as file:
+            priorprms = pkl.load(file)
+            if type(priorprms) is dict:
+                #Wrap it in a list
+                return [priorprms]
+            elif type(priorprms) is list:
+                return priorprms
+            else:
+                print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
+    except FileNotFoundError as e:
+        print(e)
+        print("Using empty prior instead."
     #Return an empty list if we failed to load anything
     return []
 
@@ -347,8 +351,10 @@ if SYSTEM == "softrobo":
 # Bayesian hyper parameter optimization
 priorprms = loadprior(SYSTEM)
 algorithm = sherpa.algorithms.GPyOpt(max_num_trials=OPT_NTRIALS, initial_data_points=priorprms)
+disable_dashboard = (sys.platform in ['cygwin', 'win32'])
 study = sherpa.Study(parameters=parameters,
                  algorithm=algorithm,
+                 disable_dashboard=disable_dashboard,
                  lower_is_better=False)
 
 for trial in study:
