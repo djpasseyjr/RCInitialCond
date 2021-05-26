@@ -79,7 +79,6 @@ ROBO_DEFAULTS = {
 
 ### Function definitions
 
-# TODO: Store previous best parameters that can be parsed by sherpa.
 # These parameters are used as a prior for the bayesian optimization.
 # Decent parameters for each chaotic system are stored in rc.SYSTEMS
 # A good prior for the softrobot system is:
@@ -121,7 +120,7 @@ def loadprior(system):
                 print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
     except FileNotFoundError as e:
         print(e)
-        print("Using empty prior instead."
+        print("Using empty prior instead.")
     #Return an empty list if we failed to load anything
     return []
 
