@@ -266,12 +266,11 @@ def meanlyap(rcomp, r0, ts, pert_size=1e-6):
     """ Average lyapunov exponent across LYAP_REPS repititions """
     lam = 0
     for i in range(LYAP_REPS):
-        r0 = init_cond["r0"]
         delta0 = np.random.randn(r0.shape[0]) * pert_size
         predelta = rcomp.predict(ts, r0=r0+delta0)
         i = rc.accduration(pre, predelta)
         lam += rc.lyapunov(ts[:i], pre[:i, :], predelta[:i, :], delta0)
-    results["cont_lyap"].append(lam / LYAP_REPS)
+    return lam / LYAP_REPS
 
 ### Optimize hyperparameters
 param_names = RES_OPT_PRMS
@@ -357,17 +356,11 @@ for k in range(NSAVED_ORBITS):
         results["rand_deriv_fit"].append((trueerr, err))
     
     ## Lyapunov Exponent Estimation
-    lam = 0
-    for i in range(LYAP_REPS):
-        if "r0" in init_cond.keys():
-            r0 = init_cond["r0"]
-        else:
-            r0 = rcomp.initial_condition(init_cond["u0"])
-        delta0 = np.random.randn(RES_DEFAULTS["res_sz"]) * 1e-6
-        predelta = rcomp.predict(ts, r0=r0+delta0)
-        i = rc.accduration(pre, predelta)
-        lam += rc.lyapunov(ts[:i], pre[:i, :], predelta[:i, :], delta0)
-    results["lyapunov"].append(lam / LYAP_REPS)
+    if "r0" in init_cond.keys():
+        r0 = init_cond["r0"]
+    else:
+        r0 = rcomp.initial_condition(init_cond["u0"])
+    results["lyapunov"].append(meanlyap(rcomp, r0, ts))
 
     # TODO: Save results dictionary with a unique name
     # pkl.dump("unique_name.pkl", results)
