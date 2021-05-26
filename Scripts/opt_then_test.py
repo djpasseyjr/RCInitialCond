@@ -355,16 +355,20 @@ for k in range(NSAVED_ORBITS):
         err = rc.system_fit_error(ts, pre, SYSTEM)
         trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
         results["rand_deriv_fit"].append((trueerr, err))
-
+    
     ## Lyapunov Exponent Estimation
     lam = 0
     for i in range(LYAP_REPS):
-        r0 = init_cond["r0"]
-        delta0 = np.random.randn(DEFAULTS["res_sz"]) * 1e-6
+        if "r0" in init_cond.keys():
+            r0 = init_cond["r0"]
+        else:
+            r0 = rcomp.initial_condition(init_cond["u0"])
+        delta0 = np.random.randn(RES_DEFAULTS["res_sz"]) * 1e-6
         predelta = rcomp.predict(ts, r0=r0+delta0)
         i = rc.accduration(pre, predelta)
         lam += rc.lyapunov(ts[:i], pre[:i, :], predelta[:i, :], delta0)
-    results["cont_lyap"].append(lam / LYAP_REPS)
+    results["lyapunov"].append(lam / LYAP_REPS)
 
     # TODO: Save results dictionary with a unique name
     # pkl.dump("unique_name.pkl", results)
+print("Ran successfully")
