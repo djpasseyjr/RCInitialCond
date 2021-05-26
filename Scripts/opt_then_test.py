@@ -1,26 +1,49 @@
 #!/bin/python3
+"""
+Script to perform hyperparameter optimization on a reservoir computer with the specified options.
+Run as:
+    python3 opt_then_test.py SYSTEM MAP_INITIAL PREDICTION_TYPE METHOD [options...]
+
+### Script arguments ###
+Choose SYSTEM from ["lorenz", "rossler", "thomas", "softrobo"]
+Choose MAP_INITIAL from ["random", "activ_f", "relax"]
+Choose PREDICTION_TYPE from ["continue", "random"]
+Choose METHOD from ["standard", "augmented"]
+
+Additional options:
+    "--test" - run with testing values.
+"""
+
 import sys
+
+#Check for sufficient arguments before importing anything
+if __name__ == "__main__":
+    options = {item for item in sys.argv[1:] if item[:2]=="--"}
+    argv = [item for item in sys.argv if item not in options]
+    if len(sys.argv) < 5:
+        print(__doc__)
+        exit()
+
 import sherpa
 import pickle as pkl
 import numpy as np
 import rescomp as rc
 
-### Script arguments
-# Choose SYSTEM from ["lorenz", "rossler", "thomas", "softrobo"]
-# Choose MAP_INITIAL from ["random", "activ_f", "relax"]
-# Choose PREDICTION_TYPE from ["continue", "random"]
-# Choose METHOD from ["standard", "augmented"]
 
-SYSTEM = sys.argv[1]
-MAP_INITIAL = sys.argv[2]
-PREDICTION_TYPE = sys.argv[3]
-METHOD = sys.argv[4]
+#Extract the additional options from sys.argv
+
+SYSTEM = argv[1]
+MAP_INITIAL = argv[2]
+PREDICTION_TYPE = argv[3]
+METHOD = argv[4]
 EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
 
 ### Constants
 #Load from the relevant .py file
-#from parameters.ott_params import *
-from parameters.ott_test import *
+if "--test" in options:
+    from parameters.ott_test import *
+else:
+    from parameters.ott_params import *
 
 ###
 
