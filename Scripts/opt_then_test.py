@@ -18,68 +18,16 @@ METHOD = sys.argv[4]
 EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
 
 ### Constants
-DATADIR = "../Data/" # Contains priors and soft robot data
-BIG_ROBO_DATA = "bellows_arm1_whitened.mat"
-SMALL_ROBO_DATA = "bellows_arm_whitened.mat"
-VPTTOL = 0.5 # Valid prediction time error tolerance
-TRAINPER = 0.66 # Percentage of the data used for training
-OPT_VPT_REPS = 10
-OPT_NTRIALS = 200
-NSAVED_ORBITS = 25
-LYAP_REPS = 10
+#Load from the relevant .py file
+#from parameters.ott_params import *
+from parameters.ott_test import *
 
-# Time Steps for chaotic systems
-DT = {
-    "lorenz": 0.01,
-    "rossler": 0.01,
-    "thomas": 0.1
-}
-# Max orbit time
-DURATION = {
-    "lorenz": 10,
-    "rossler": 150,
-    "thomas": 1000
-}
-# Parameters to optimize in the reservoir computer
-RES_OPT_PRMS = [
-    "sigma",
-    "gamma",
-    "ridge_alpha",
-    "spect_rad",
-    "mean_degree"
-]
-# Window training algorithm parameters
-METHOD_PRMS = [
-    "window",
-    "overlap"
-]
-# Additional Soft Robot Parameter
-ROBO_OPT_PRMS = [
-    "delta"
-]
+###
 
-# Default reservoir computer hyper parameters
-RES_DEFAULTS = {
-    "res_sz":1000,
-    "activ_f": lambda x: 1/(1+np.exp(-1*x)),
-    "sparse_res":True,
-    "uniform_weights":True,
-    "signal_dim":3,
-    "max_weight":2,
-    "min_weight":0,
-    "batchsize":2000,
-    "map_initial":MAP_INITIAL
-}
-
-# Soft robot default parameters
-ROBO_DEFAULTS = {
-    "signal_dim":6,
-    "drive_dim":6
-}
+RES_DEFAULTS["map_initial"] = MAP_INITIAL
 
 ### Function definitions
 
-# TODO: Store previous best parameters that can be parsed by sherpa.
 # These parameters are used as a prior for the bayesian optimization.
 # Decent parameters for each chaotic system are stored in rc.SYSTEMS
 # A good prior for the softrobot system is:
@@ -109,15 +57,19 @@ def loadprior(system):
     #As far as I can tell, the sherpa function we're giving this to 
     #   wants a list of hyperparameter dictionaries, or a pandas.Dataframe
     #   object of unknown formatting
-    with open(f"{system}_prior.pkl", "rb") as file:
-        priorprms = pkl.load(file)
-        if type(priorprms) is dict:
-            #Wrap it in a list
-            return [priorprms]
-        elif type(priorprms) is list:
-            return priorprms
-        else:
-            print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
+    try:
+        with open(f"{system}_prior.pkl", "rb") as file:
+            priorprms = pkl.load(file)
+            if type(priorprms) is dict:
+                #Wrap it in a list
+                return [priorprms]
+            elif type(priorprms) is list:
+                return priorprms
+            else:
+                print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
+    except FileNotFoundError as e:
+        print(e)
+        print("Using empty prior instead.")
     #Return an empty list if we failed to load anything
     return []
 
@@ -347,8 +299,10 @@ if SYSTEM == "softrobo":
 # Bayesian hyper parameter optimization
 priorprms = loadprior(SYSTEM)
 algorithm = sherpa.algorithms.GPyOpt(max_num_trials=OPT_NTRIALS, initial_data_points=priorprms)
+disable_dashboard = (sys.platform in ['cygwin', 'win32'])
 study = sherpa.Study(parameters=parameters,
                  algorithm=algorithm,
+                 disable_dashboard=disable_dashboard,
                  lower_is_better=False)
 
 for trial in study:
@@ -359,8 +313,8 @@ for trial in study:
     study.save(DATADIR + SYSTEM) # Need separate directories for each method etc
 
 ### Choose the best hyper parameters
-# For some reason this function actually just returns a dictionary, 
-#   which makes our job easier.
+# For some reason this function actually just returns a dictionary 
+#   (rather than a pandas.DataFrame), which makes extracting the results easy.
 optimized_hyperprms = study.get_best_result()
 # Trim to only have the actual parameters
 optimized_hyperprms = {key:optimized_hyperprms[key] for key in param_names}
@@ -376,7 +330,7 @@ for k in range(NSAVED_ORBITS):
 
     ## Continued Prediction
     init_cond = make_initial("continue", rcomp, Uts)
-    pre = rcomp_prediction(SYSTEM, rcomp, ts)
+    pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
     # Compute error and deduce valid prediction time
     err = nrmse(Uts, pre)
     idx = valid_prediction_index(err, VPTTOL)
@@ -391,7 +345,7 @@ for k in range(NSAVED_ORBITS):
     ## Random Prediction
     tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="random")
     init_cond = make_initial("random", rcomp, Uts)
-    pre = rcomp_prediction(SYSTEM, rcomp, ts)
+    pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
     err = nrmse(Uts, pre)
     idx = valid_prediction_index(err, VPTTOL)
     vptime = ts[idx-1] - ts[0]
