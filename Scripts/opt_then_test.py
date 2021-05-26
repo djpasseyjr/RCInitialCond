@@ -390,4 +390,5 @@ if __name__ == "__main__":
 
         # TODO: Save results dictionary with a unique name
         # pkl.dump("unique_name.pkl", results)
-    print("Ran successfully")
+    if "--test" in options:
+        print("Ran successfully")
