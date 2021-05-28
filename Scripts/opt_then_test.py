@@ -42,6 +42,7 @@ import sherpa
 import pickle as pkl
 import numpy as np
 import rescomp as rc
+from scipy.io import loadmat
 
 ### Constants
 #Load from the relevant .py file
@@ -100,7 +101,7 @@ def loadprior(system):
 
 def load_robo(filename):
     """Load soft robot order"""
-    data = io.loadmat(DATADIR + filename)
+    data = loadmat(DATADIR + filename)
     t = data['t'][0]
     q = data['q']
     pref = data["pref"]
@@ -153,7 +154,7 @@ def chaos_train_test_split(system, duration=10, trainper=0.66, dt=0.01, test="co
 def train_test_data(system, trainper=0.66, test="continue"):
     """ Load train test data for a given system """
     if system == "softrobo":
-        return robo_train_test_split(duration=duration, trainper=trainper, test=test)
+        return robo_train_test_split(timesteps=DURATION[system], trainper=trainper, test=test)
     else:
         return chaos_train_test_split(system, duration=DURATION[system], trainper=trainper, dt=DT[system], test=test)
 
@@ -230,7 +231,7 @@ def build_params(opt_prms, combine=False):
     """
     if combine:
         if SYSTEM == "softrobo":
-            return {**ROBO_DEFAULTS, **opt_prms, **RES_DEFAULTS}
+            return {**opt_prms, **RES_DEFAULTS, **ROBO_DEFAULTS}
         else:
             return {**opt_prms, **RES_DEFAULTS}
             
@@ -243,7 +244,7 @@ def build_params(opt_prms, combine=False):
             resprms[k] = opt_prms[k]
     resprms = {**resprms, **RES_DEFAULTS}
     if SYSTEM == "softrobo":
-        resprms = {**ROBO_DEFAULTS, **resprms} # Updates signal_dim and adds drive_dim
+        resprms = {**resprms, **ROBO_DEFAULTS} # Updates signal_dim and adds drive_dim
     return resprms, methodprms
 
 def vpt(*args, **kwargs):
