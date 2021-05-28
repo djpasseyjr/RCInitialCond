@@ -325,7 +325,7 @@ if __name__ == "__main__":
     ]
     augmentedprms = [
         sherpa.Continuous(name='window', range=[0.1, 10]),
-        sherpa.Discrete(name='overlap', range=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95])
+        sherpa.Continuous(name='overlap', range=[0.0, 0.95])
     ]
     roboprms = [
         sherpa.Continuous(name='delta', range=[0.01, 5.0]),
