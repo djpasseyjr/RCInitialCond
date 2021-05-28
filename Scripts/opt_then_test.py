@@ -405,7 +405,13 @@ if __name__ == "__main__":
                 r0 = rcomp.initial_condition(init_cond["u0"])
         results["lyapunov"].append(meanlyap(rcomp, pre, r0, ts))
 
-    # TODO: Save results dictionary with a unique name
-    # pkl.dump("unique_name.pkl", results)
+    # Save results dictionary with a semi-unique name.
+    #   Could add a timestamp or something for stronger uniqueness
+    results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)) + ".pkl"
+    if "--test" in options:
+        results_filename = "TEST-" + results_filename
+    with open(DATADIR + SYSTEM + results_filename, 'wb') as file:
+        pkl.dump(results, file)
+    
     if "--test" in options:
         print("Testing ran successfully")
