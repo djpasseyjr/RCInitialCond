@@ -139,7 +139,7 @@ def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     Dtr, Dts = D[:split_idx, :], D[split_idx:, :]
     if test == "random":
         t, U, D = load_robo(SMALL_ROBO_DATA)
-        test_timesteps = timesteps - isplit_dx
+        test_timesteps = timesteps - split_idx
         ts, Uts, Dts = random_slice(t, U, D, test_timesteps)
     return tr, (Utr, Dtr), (ts, Dts), Uts
 
@@ -276,17 +276,27 @@ def vpt(*args, **kwargs):
     init_cond = make_initial(pred_type, rcomp, Uts)
     pre = rcomp_prediction(system, rcomp, ts, init_cond)
     # Compute error and deduce valid prediction time
-    err = nrmse(Uts, pre)
-    idx = valid_prediction_index(err, VPTTOL)
-    vptime = ts[idx-1] - ts[0]
+    vptime = get_vptime(system, ts, Uts, pre)
     return vptime
 
 def mean_vpt(*args, **kwargs):
-    """ Average valid prediction time across OPT_VPT_REPS repititions """
+    """ Average valid prediction time across OPT_VPT_REPS repetitions """
     tot_vpt = 0
     for i in range(OPT_VPT_REPS):
         tot_vpt += vpt(*args, **kwargs)
     return tot_vpt/OPT_VPT_REPS
+
+def get_vptime(system, ts, Uts, pre):
+    """
+    Valid prediction time for a specific instance
+    """
+    err = nrmse(Uts, pre)
+    idx = valid_prediction_index(err, VPTTOL)
+    if system == "softrobo":
+        vptime = ts[0][idx-1] - ts[0][0]
+    else:
+        vptime = ts[idx-1] - ts[0]
+    return vptime
 
 def meanlyap(rcomp, r0, ts, pert_size=1e-6):
     """ Average lyapunov exponent across LYAP_REPS repititions """
@@ -358,9 +368,7 @@ if __name__ == "__main__":
         init_cond = make_initial("continue", rcomp, Uts)
         pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
         # Compute error and deduce valid prediction time
-        err = nrmse(Uts, pre)
-        idx = valid_prediction_index(err, VPTTOL)
-        vptime = ts[idx-1] - ts[0]
+        vptime = get_vptime(SYSTEM, ts, Uts, pre)
         results["continue"].append(vptime)
         ## Continued Derivative fit
         if SYSTEM != "softrobo":
@@ -372,9 +380,7 @@ if __name__ == "__main__":
         tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="random")
         init_cond = make_initial("random", rcomp, Uts)
         pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
-        err = nrmse(Uts, pre)
-        idx = valid_prediction_index(err, VPTTOL)
-        vptime = ts[idx-1] - ts[0]
+        vptime = get_vptime(SYSTEM, ts, Uts, pre)
         results["random"].append(vptime)
         ## Random Derivative fit
         if SYSTEM != "softrobo":
