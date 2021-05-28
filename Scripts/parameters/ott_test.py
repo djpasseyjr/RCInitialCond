@@ -9,10 +9,10 @@ BIG_ROBO_DATA = "bellows_arm1_whitened.mat"
 SMALL_ROBO_DATA = "bellows_arm_whitened.mat"
 VPTTOL = 0.5 # Valid prediction time error tolerance
 TRAINPER = 0.66 # Percentage of the data used for training
-OPT_VPT_REPS = 5
-OPT_NTRIALS = 20
-NSAVED_ORBITS = 25
-LYAP_REPS = 10
+OPT_VPT_REPS = 3
+OPT_NTRIALS = 5
+NSAVED_ORBITS = 5
+LYAP_REPS = 5
 
 # Time Steps for chaotic systems
 DT = {
@@ -24,7 +24,8 @@ DT = {
 DURATION = {
     "lorenz": 10,
     "rossler": 40,
-    "thomas": 100
+    "thomas": 100,
+    "softrobo": 1000
 }
 # Parameters to optimize in the reservoir computer
 RES_OPT_PRMS = [
@@ -46,7 +47,7 @@ ROBO_OPT_PRMS = [
 
 # Default reservoir computer hyper parameters
 RES_DEFAULTS = {
-    "res_sz":200,
+    "res_sz":50,
     "activ_f": lambda x: 1/(1+exp(-1*x)),
     "sparse_res":True,
     "uniform_weights":True,

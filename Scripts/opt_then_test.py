@@ -42,6 +42,7 @@ import sherpa
 import pickle as pkl
 import numpy as np
 import rescomp as rc
+from scipy.io import loadmat
 
 ### Constants
 #Load from the relevant .py file
@@ -100,7 +101,7 @@ def loadprior(system):
 
 def load_robo(filename):
     """Load soft robot order"""
-    data = io.loadmat(DATADIR + filename)
+    data = loadmat(DATADIR + filename)
     t = data['t'][0]
     q = data['q']
     pref = data["pref"]
@@ -138,7 +139,7 @@ def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     Dtr, Dts = D[:split_idx, :], D[split_idx:, :]
     if test == "random":
         t, U, D = load_robo(SMALL_ROBO_DATA)
-        test_timesteps = timesteps - isplit_dx
+        test_timesteps = timesteps - split_idx
         ts, Uts, Dts = random_slice(t, U, D, test_timesteps)
     return tr, (Utr, Dtr), (ts, Dts), Uts
 
@@ -153,7 +154,7 @@ def chaos_train_test_split(system, duration=10, trainper=0.66, dt=0.01, test="co
 def train_test_data(system, trainper=0.66, test="continue"):
     """ Load train test data for a given system """
     if system == "softrobo":
-        return robo_train_test_split(duration=duration, trainper=trainper, test=test)
+        return robo_train_test_split(timesteps=DURATION[system], trainper=trainper, test=test)
     else:
         return chaos_train_test_split(system, duration=DURATION[system], trainper=trainper, dt=DT[system], test=test)
 
@@ -230,7 +231,7 @@ def build_params(opt_prms, combine=False):
     """
     if combine:
         if SYSTEM == "softrobo":
-            return {**ROBO_DEFAULTS, **opt_prms, **RES_DEFAULTS}
+            return {**opt_prms, **RES_DEFAULTS, **ROBO_DEFAULTS}
         else:
             return {**opt_prms, **RES_DEFAULTS}
             
@@ -243,7 +244,7 @@ def build_params(opt_prms, combine=False):
             resprms[k] = opt_prms[k]
     resprms = {**resprms, **RES_DEFAULTS}
     if SYSTEM == "softrobo":
-        resprms = {**ROBO_DEFAULTS, **resprms} # Updates signal_dim and adds drive_dim
+        resprms = {**resprms, **ROBO_DEFAULTS} # Updates signal_dim and adds drive_dim
     return resprms, methodprms
 
 def vpt(*args, **kwargs):
@@ -275,24 +276,39 @@ def vpt(*args, **kwargs):
     init_cond = make_initial(pred_type, rcomp, Uts)
     pre = rcomp_prediction(system, rcomp, ts, init_cond)
     # Compute error and deduce valid prediction time
-    err = nrmse(Uts, pre)
-    idx = valid_prediction_index(err, VPTTOL)
-    vptime = ts[idx-1] - ts[0]
+    vptime = get_vptime(system, ts, Uts, pre)
     return vptime
 
 def mean_vpt(*args, **kwargs):
-    """ Average valid prediction time across OPT_VPT_REPS repititions """
+    """ Average valid prediction time across OPT_VPT_REPS repetitions """
     tot_vpt = 0
     for i in range(OPT_VPT_REPS):
         tot_vpt += vpt(*args, **kwargs)
     return tot_vpt/OPT_VPT_REPS
 
-def meanlyap(rcomp, r0, ts, pert_size=1e-6):
+def get_vptime(system, ts, Uts, pre):
+    """
+    Valid prediction time for a specific instance
+    """
+    err = nrmse(Uts, pre)
+    idx = valid_prediction_index(err, VPTTOL)
+    if system == "softrobo":
+        vptime = ts[0][idx-1] - ts[0][0]
+    else:
+        vptime = ts[idx-1] - ts[0]
+    return vptime
+
+def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
     """ Average lyapunov exponent across LYAP_REPS repititions """
+    if SYSTEM == "softrobo":
+        ts, D = ts
     lam = 0
     for i in range(LYAP_REPS):
         delta0 = np.random.randn(r0.shape[0]) * pert_size
-        predelta = rcomp.predict(ts, r0=r0+delta0)
+        if SYSTEM == "softrobo":
+            predelta = rcomp.predict(ts, D, r0=r0+delta0)
+        else:
+            predelta = rcomp.predict(ts, r0=r0+delta0)
         i = rc.accduration(pre, predelta)
         lam += rc.lyapunov(ts[:i], pre[:i, :], predelta[:i, :], delta0)
     return lam / LYAP_REPS
@@ -344,6 +360,8 @@ if __name__ == "__main__":
     # Trim to only have the actual parameters
     optimized_hyperprms = {key:optimized_hyperprms[key] for key in param_names}
 
+    if "--test" in options:
+        print("Optimization ran successfully")
 
     ### Test the training method
     results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
@@ -357,9 +375,7 @@ if __name__ == "__main__":
         init_cond = make_initial("continue", rcomp, Uts)
         pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
         # Compute error and deduce valid prediction time
-        err = nrmse(Uts, pre)
-        idx = valid_prediction_index(err, VPTTOL)
-        vptime = ts[idx-1] - ts[0]
+        vptime = get_vptime(SYSTEM, ts, Uts, pre)
         results["continue"].append(vptime)
         ## Continued Derivative fit
         if SYSTEM != "softrobo":
@@ -371,9 +387,7 @@ if __name__ == "__main__":
         tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="random")
         init_cond = make_initial("random", rcomp, Uts)
         pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
-        err = nrmse(Uts, pre)
-        idx = valid_prediction_index(err, VPTTOL)
-        vptime = ts[idx-1] - ts[0]
+        vptime = get_vptime(SYSTEM, ts, Uts, pre)
         results["random"].append(vptime)
         ## Random Derivative fit
         if SYSTEM != "softrobo":
@@ -385,10 +399,19 @@ if __name__ == "__main__":
         if "r0" in init_cond.keys():
             r0 = init_cond["r0"]
         else:
-            r0 = rcomp.initial_condition(init_cond["u0"])
-        results["lyapunov"].append(meanlyap(rcomp, r0, ts))
+            if SYSTEM == "softrobo":
+                r0 = rcomp.initial_condition(init_cond["u0"], ts[1][0,:])
+            else:
+                r0 = rcomp.initial_condition(init_cond["u0"])
+        results["lyapunov"].append(meanlyap(rcomp, pre, r0, ts))
 
-        # TODO: Save results dictionary with a unique name
-        # pkl.dump("unique_name.pkl", results)
+    # Save results dictionary with a semi-unique name.
+    #   Could add a timestamp or something for stronger uniqueness
+    results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)) + ".pkl"
     if "--test" in options:
-        print("Ran successfully")
+        results_filename = "TEST-" + results_filename
+    with open(DATADIR + SYSTEM + results_filename, 'wb') as file:
+        pkl.dump(results, file)
+    
+    if "--test" in options:
+        print("Testing ran successfully")

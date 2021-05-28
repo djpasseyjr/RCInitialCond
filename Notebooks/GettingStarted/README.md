@@ -11,7 +11,13 @@ To begin, you'll need to install dependencies. Besides `numpy`, `matplotlib` and
 
 
     pip install rescomp
-    pip install sherpa
+    pip install parameter-sherpa
+    
+Additionally, one of the algorithms from `sherpa` that we use depends on the `GPyOpt` library. Installing `sherpa` will install this automatically, but the version that pip will install by default has a major bug that results in the algorithm throwing an error. This can be circumvented by installing `GPyOpt` directly from its GitHub repository; this version has the error fixed:
+
+    pip install git+https://github.com/SheffieldML/GPyOpt.git
+
+(This situation is not likely to change soon, because the `GPyOpt` package is unmaintained as of November 2020.)
     
 ## Tutorials
 
