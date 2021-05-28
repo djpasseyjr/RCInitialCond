@@ -298,12 +298,17 @@ def get_vptime(system, ts, Uts, pre):
         vptime = ts[idx-1] - ts[0]
     return vptime
 
-def meanlyap(rcomp, r0, ts, pert_size=1e-6):
+def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
     """ Average lyapunov exponent across LYAP_REPS repititions """
+    if SYSTEM == "softrobo":
+        ts, D = ts
     lam = 0
     for i in range(LYAP_REPS):
         delta0 = np.random.randn(r0.shape[0]) * pert_size
-        predelta = rcomp.predict(ts, r0=r0+delta0)
+        if SYSTEM == "softrobo":
+            predelta = rcomp.predict(ts, D, r0=r0+delta0)
+        else:
+            predelta = rcomp.predict(ts, r0=r0+delta0)
         i = rc.accduration(pre, predelta)
         lam += rc.lyapunov(ts[:i], pre[:i, :], predelta[:i, :], delta0)
     return lam / LYAP_REPS
@@ -355,6 +360,8 @@ if __name__ == "__main__":
     # Trim to only have the actual parameters
     optimized_hyperprms = {key:optimized_hyperprms[key] for key in param_names}
 
+    if "--test" in options:
+        print("Optimization ran successfully")
 
     ### Test the training method
     results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
@@ -392,10 +399,13 @@ if __name__ == "__main__":
         if "r0" in init_cond.keys():
             r0 = init_cond["r0"]
         else:
-            r0 = rcomp.initial_condition(init_cond["u0"])
-        results["lyapunov"].append(meanlyap(rcomp, r0, ts))
+            if SYSTEM == "softrobo":
+                r0 = rcomp.initial_condition(init_cond["u0"], ts[1][0,:])
+            else:
+                r0 = rcomp.initial_condition(init_cond["u0"])
+        results["lyapunov"].append(meanlyap(rcomp, pre, r0, ts))
 
-        # TODO: Save results dictionary with a unique name
-        # pkl.dump("unique_name.pkl", results)
+    # TODO: Save results dictionary with a unique name
+    # pkl.dump("unique_name.pkl", results)
     if "--test" in options:
-        print("Ran successfully")
+        print("Testing ran successfully")
