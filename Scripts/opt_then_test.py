@@ -12,6 +12,7 @@ Choose METHOD from ["standard", "augmented"]
 
 Additional options:
     "--test" - run with testing values.
+    "--dashboard" - enable the sherpa dashboard. Not supported on Windows.
 """
 
 import sys
@@ -319,6 +320,9 @@ def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
     return lam / LYAP_REPS
 
 if __name__ == "__main__":
+    if "--test" in options:
+        print("Running in test mode")
+        
     ### Optimize hyperparameters
     param_names = RES_OPT_PRMS
     parameters = [
@@ -347,7 +351,7 @@ if __name__ == "__main__":
     # Bayesian hyper parameter optimization
     priorprms = loadprior(SYSTEM, param_names)
     algorithm = sherpa.algorithms.GPyOpt(max_num_trials=OPT_NTRIALS, initial_data_points=priorprms)
-    disable_dashboard = (sys.platform in ['cygwin', 'win32'])
+    disable_dashboard = (sys.platform in ['cygwin', 'win32']) or ("--dashboard" not in options)
     study = sherpa.Study(parameters=parameters,
                      algorithm=algorithm,
                      disable_dashboard=disable_dashboard,
