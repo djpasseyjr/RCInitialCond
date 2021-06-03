@@ -86,7 +86,7 @@ def loadprior(system, paramnames):
     #   wants a list of hyperparameter dictionaries, or a pandas.Dataframe
     #   object of unknown formatting
     try:
-        with open(f"{system}_prior.pkl", "rb") as file:
+        with open(DATADIR + f"{system}_prior.pkl", "rb") as file:
             priorprms = pkl.load(file)
             if type(priorprms) is dict:
                 #Trim to only given parameters
