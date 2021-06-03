@@ -12,6 +12,7 @@ Choose METHOD from ["standard", "augmented"]
 
 Additional options:
     "--test" - run with testing values.
+    "--dashboard" - enable the sherpa dashboard. Not supported on Windows.
 """
 
 import sys
@@ -74,22 +75,32 @@ RES_DEFAULTS["map_initial"] = MAP_INITIAL
 # Basically change loadprior function to produce the parameters given above
 # in a format that sherpa can read
 
-def loadprior(system):
+def loadprior(system, paramnames):
     """Load best parameters from random searches (Computed previously).
+    Parameters not included are set to a default value found in the parameters files.
     Parameters:
         system (string): name of the system type being used
+        paramnames (list of strings): name of parameters to keep
     Returns:
         priorprms (List of dictionaries): sets of hyperparameters known to be good"""
     #As far as I can tell, the sherpa function we're giving this to 
     #   wants a list of hyperparameter dictionaries, or a pandas.Dataframe
     #   object of unknown formatting
+    def _clean_prior(prior):
+        """Removes unneeded parameters and adds all needed parameters"""
+        prior = {**PRIOR_DEFAULTS, **prior}
+        prior = {key:prior[key] for key in prior if key in paramnames}
+        return prior
+        
     try:
-        with open(f"{system}_prior.pkl", "rb") as file:
+        with open(DATADIR + f"{system}_prior.pkl", "rb") as file:
             priorprms = pkl.load(file)
             if type(priorprms) is dict:
-                #Wrap it in a list
-                return [priorprms]
+                #Clean and wrap in a list
+                return [_clean_prior(priorprms)]
             elif type(priorprms) is list:
+                #Clean each item in the list
+                priorprms = [_clean_prior(prms)for prms in priorprms]
                 return priorprms
             else:
                 print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
@@ -314,6 +325,9 @@ def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
     return lam / LYAP_REPS
 
 if __name__ == "__main__":
+    if "--test" in options:
+        print("Running in test mode")
+        
     ### Optimize hyperparameters
     param_names = RES_OPT_PRMS
     parameters = [
@@ -340,9 +354,9 @@ if __name__ == "__main__":
         param_names += ROBO_OPT_PRMS
 
     # Bayesian hyper parameter optimization
-    priorprms = loadprior(SYSTEM)
+    priorprms = loadprior(SYSTEM, param_names)
     algorithm = sherpa.algorithms.GPyOpt(max_num_trials=OPT_NTRIALS, initial_data_points=priorprms)
-    disable_dashboard = (sys.platform in ['cygwin', 'win32'])
+    disable_dashboard = (sys.platform in ['cygwin', 'win32']) or ("--dashboard" not in options)
     study = sherpa.Study(parameters=parameters,
                      algorithm=algorithm,
                      disable_dashboard=disable_dashboard,
@@ -412,7 +426,7 @@ if __name__ == "__main__":
     results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)) + ".pkl"
     if "--test" in options:
         results_filename = "TEST-" + results_filename
-    with open(DATADIR + SYSTEM + results_filename, 'wb') as file:
+    with open(DATADIR + SYSTEM + "/" + results_filename, 'wb') as file:
         pkl.dump(results, file)
     
     if "--test" in options:
