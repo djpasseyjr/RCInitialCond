@@ -62,3 +62,16 @@ ROBO_DEFAULTS = {
     "signal_dim":6,
     "drive_dim":6
 }
+
+# Prior default parameters.
+# Used to make sure loaded priors aren't missing any variables.
+PRIOR_DEFAULTS = {
+    "sigma":0.1,
+    "gamma":1.0,
+    "ridge_alpha":1e-4,
+    "spect_rad":0.9,
+    "mean_degree":2.0,
+    "window":5,
+    "overlap":0.3,
+    "delta":0.5
+}

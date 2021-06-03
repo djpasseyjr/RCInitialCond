@@ -77,6 +77,7 @@ RES_DEFAULTS["map_initial"] = MAP_INITIAL
 
 def loadprior(system, paramnames):
     """Load best parameters from random searches (Computed previously).
+    Parameters not included are set to a default value found in the parameters files.
     Parameters:
         system (string): name of the system type being used
         paramnames (list of strings): name of parameters to keep
@@ -85,17 +86,21 @@ def loadprior(system, paramnames):
     #As far as I can tell, the sherpa function we're giving this to 
     #   wants a list of hyperparameter dictionaries, or a pandas.Dataframe
     #   object of unknown formatting
+    def _clean_prior(prior):
+        """Removes unneeded parameters and adds all needed parameters"""
+        prior = {**PRIOR_DEFAULTS, **prior}
+        prior = {key:prior[key] for key in prior if key in paramnames}
+        return prior
+        
     try:
         with open(DATADIR + f"{system}_prior.pkl", "rb") as file:
             priorprms = pkl.load(file)
             if type(priorprms) is dict:
-                #Trim to only given parameters
-                priorprms = {key:priorprms[key] for key in priorprms if key in paramnames}
-                #Wrap it in a list
-                return [priorprms]
+                #Clean and wrap in a list
+                return [_clean_prior(priorprms)]
             elif type(priorprms) is list:
-                #Trim each to only the given parameters
-                priorprms = [{key:prms[key] for key in prms if key in paramnames} for prms in priorprms]
+                #Clean each item in the list
+                priorprms = [_clean_prior(prms)for prms in priorprms]
                 return priorprms
             else:
                 print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
