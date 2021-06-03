@@ -74,10 +74,11 @@ RES_DEFAULTS["map_initial"] = MAP_INITIAL
 # Basically change loadprior function to produce the parameters given above
 # in a format that sherpa can read
 
-def loadprior(system):
+def loadprior(system, paramnames):
     """Load best parameters from random searches (Computed previously).
     Parameters:
         system (string): name of the system type being used
+        paramnames (list of strings): name of parameters to keep
     Returns:
         priorprms (List of dictionaries): sets of hyperparameters known to be good"""
     #As far as I can tell, the sherpa function we're giving this to 
@@ -87,9 +88,13 @@ def loadprior(system):
         with open(f"{system}_prior.pkl", "rb") as file:
             priorprms = pkl.load(file)
             if type(priorprms) is dict:
+                #Trim to only given parameters
+                priorprms = {key:priorprms[key] for key in priorprms if key in paramnames}
                 #Wrap it in a list
                 return [priorprms]
             elif type(priorprms) is list:
+                #Trim each to only the given parameters
+                priorprms = [{key:prms[key] for key in prms if key in paramnames} for prms in priorprms]
                 return priorprms
             else:
                 print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
@@ -340,7 +345,7 @@ if __name__ == "__main__":
         param_names += ROBO_OPT_PRMS
 
     # Bayesian hyper parameter optimization
-    priorprms = loadprior(SYSTEM)
+    priorprms = loadprior(SYSTEM, param_names)
     algorithm = sherpa.algorithms.GPyOpt(max_num_trials=OPT_NTRIALS, initial_data_points=priorprms)
     disable_dashboard = (sys.platform in ['cygwin', 'win32'])
     study = sherpa.Study(parameters=parameters,
@@ -412,7 +417,7 @@ if __name__ == "__main__":
     results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)) + ".pkl"
     if "--test" in options:
         results_filename = "TEST-" + results_filename
-    with open(DATADIR + SYSTEM + results_filename, 'wb') as file:
+    with open(DATADIR + SYSTEM + "/" + results_filename, 'wb') as file:
         pkl.dump(results, file)
     
     if "--test" in options:
