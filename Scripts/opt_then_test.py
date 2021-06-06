@@ -5,7 +5,7 @@ Run as:
     python3 opt_then_test.py SYSTEM MAP_INITIAL PREDICTION_TYPE METHOD [Results directory] [options...]
 
 ### Script arguments ###
-Choose SYSTEM from ["lorenz", "rossler", "thomas", "softrobo"]
+Choose SYSTEM from ["lorenz", "rossler", "thomas", "softrobot"]
 Choose MAP_INITIAL from ["random", "activ_f", "relax"]
 Choose PREDICTION_TYPE from ["continue", "random"]
 Choose METHOD from ["standard", "augmented"]
@@ -209,7 +209,7 @@ def trained_rcomp(system, tr, Utr, resprms, methodprms):
     Returns:
         rcomp (ResComp): Trained reservoir computer
     """
-    if system == "softrobo":
+    if system == "softrobot":
         rcomp = rc.DrivenResComp(**resprms)
         rcomp.train(tr, *Utr, **methodprms)
     else:
@@ -227,7 +227,7 @@ def rcomp_prediction(system, rcomp, predargs, init_cond):
     Returns:
         pre (ndarray): Reservoir computer prediction
     """
-    if system == "softrobo":
+    if system == "softrobot":
         pre = rcomp.predict(*predargs, **init_cond)
     else:
         pre = rcomp.predict(predargs, **init_cond)
@@ -252,7 +252,7 @@ def build_params(opt_prms, combine=False):
         combine (bool): default False; whether to return all parameters as a single dictionary
     """
     if combine:
-        if SYSTEM == "softrobo":
+        if SYSTEM == "softrobot":
             return {**opt_prms, **RES_DEFAULTS, **ROBO_DEFAULTS}
         else:
             return {**opt_prms, **RES_DEFAULTS}
@@ -265,7 +265,7 @@ def build_params(opt_prms, combine=False):
         else:
             resprms[k] = opt_prms[k]
     resprms = {**resprms, **RES_DEFAULTS}
-    if SYSTEM == "softrobo":
+    if SYSTEM == "softrobot":
         resprms = {**resprms, **ROBO_DEFAULTS} # Updates signal_dim and adds drive_dim
     return resprms, methodprms
 
@@ -275,7 +275,7 @@ def vpt(*args, **kwargs):
         Parameters:
         -----------
         system (str): The name of the system from which to generate training data.
-            One of: `["lorenz", "rossler", "thomas", "softrobo"]`
+            One of: `["lorenz", "rossler", "thomas", "softrobot"]`
         pred_type: Predict continuation of training trajectory or predict evolution
             of a random initial condition. One of: `["continue", "random"]`
         method: Training methodology. One of `["standard", "aumented"]`
@@ -314,7 +314,7 @@ def get_vptime(system, ts, Uts, pre):
     """
     err = nrmse(Uts, pre)
     idx = valid_prediction_index(err, VPTTOL)
-    if system == "softrobo":
+    if system == "softrobot":
         vptime = ts[0][idx-1] - ts[0][0]
     else:
         vptime = ts[idx-1] - ts[0]
@@ -322,12 +322,12 @@ def get_vptime(system, ts, Uts, pre):
 
 def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
     """ Average lyapunov exponent across LYAP_REPS repititions """
-    if SYSTEM == "softrobo":
+    if SYSTEM == "softrobot":
         ts, D = ts
     lam = 0
     for i in range(LYAP_REPS):
         delta0 = np.random.randn(r0.shape[0]) * pert_size
-        if SYSTEM == "softrobo":
+        if SYSTEM == "softrobot":
             predelta = rcomp.predict(ts, D, r0=r0+delta0)
         else:
             predelta = rcomp.predict(ts, r0=r0+delta0)
@@ -372,7 +372,7 @@ if __name__ == "__main__":
     if METHOD == "augmented":
         parameters += augmentedprms
         param_names += METHOD_PRMS
-    if SYSTEM == "softrobo":
+    if SYSTEM == "softrobot":
         parameters += roboprms
         param_names += ROBO_OPT_PRMS
 
@@ -417,7 +417,7 @@ if __name__ == "__main__":
         vptime = get_vptime(SYSTEM, ts, Uts, pre)
         results["continue"].append(vptime)
         ## Continued Derivative fit
-        if SYSTEM != "softrobo":
+        if SYSTEM != "softrobot":
             err = rc.system_fit_error(ts, pre, SYSTEM)
             trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
             results["cont_deriv_fit"].append((trueerr, err))
@@ -429,7 +429,7 @@ if __name__ == "__main__":
         vptime = get_vptime(SYSTEM, ts, Uts, pre)
         results["random"].append(vptime)
         ## Random Derivative fit
-        if SYSTEM != "softrobo":
+        if SYSTEM != "softrobot":
             err = rc.system_fit_error(ts, pre, SYSTEM)
             trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
             results["rand_deriv_fit"].append((trueerr, err))
@@ -438,7 +438,7 @@ if __name__ == "__main__":
         if "r0" in init_cond.keys():
             r0 = init_cond["r0"]
         else:
-            if SYSTEM == "softrobo":
+            if SYSTEM == "softrobot":
                 r0 = rcomp.initial_condition(init_cond["u0"], ts[1][0,:])
             else:
                 r0 = rcomp.initial_condition(init_cond["u0"])
