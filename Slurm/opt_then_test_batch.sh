@@ -11,13 +11,11 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 
-RCDIR="$(dirname $( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) )"
-RCDIR="/fslhome/tpool2/RCInitialCond"
-
 SYSTEM=$1
 MAP_INITIAL=$2
 PREDICTION_TYPE=$3
 METHOD=$4
+LOGDIR=$5
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
@@ -25,4 +23,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 source $RCDIR/venv/bin/activate
 cd $RCDIR/Scripts
-python opt_then_test.py $SYSTEM $MAP_INITIAL $PREDICTION_TYPE $METHOD
+python opt_then_test.py $SYSTEM $MAP_INITIAL $PREDICTION_TYPE $METHOD $LOGDIR
