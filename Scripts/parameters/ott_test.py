@@ -10,7 +10,7 @@ SMALL_ROBO_DATA = "bellows_arm_whitened.mat"
 VPTTOL = 0.5 # Valid prediction time error tolerance
 TRAINPER = 0.66 # Percentage of the data used for training
 OPT_VPT_REPS = 3
-OPT_NTRIALS = 5
+OPT_NTRIALS = 10
 NSAVED_ORBITS = 5
 LYAP_REPS = 5
 
@@ -24,9 +24,11 @@ DT = {
 DURATION = {
     "lorenz": 10,
     "rossler": 40,
-    "thomas": 100,
-    "softrobo": 1000
+    "thomas": 100
 }
+
+SOFT_ROBO_TIMESTEPS = 1000
+
 # Parameters to optimize in the reservoir computer
 RES_OPT_PRMS = [
     "sigma",

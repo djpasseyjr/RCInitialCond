@@ -150,7 +150,8 @@ def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     Dtr, Dts = D[:split_idx, :], D[split_idx:, :]
     if test == "random":
         t, U, D = load_robo(SMALL_ROBO_DATA)
-        test_timesteps = timesteps - split_idx
+        split_idx = int(np.floor(len(t) * trainper))
+        test_timesteps = min(timesteps,len(t)) - split_idx
         ts, Uts, Dts = random_slice(t, U, D, test_timesteps)
     return tr, (Utr, Dtr), (ts, Dts), Uts
 
@@ -165,7 +166,7 @@ def chaos_train_test_split(system, duration=10, trainper=0.66, dt=0.01, test="co
 def train_test_data(system, trainper=0.66, test="continue"):
     """ Load train test data for a given system """
     if system == "softrobo":
-        return robo_train_test_split(timesteps=DURATION[system], trainper=trainper, test=test)
+        return robo_train_test_split(timesteps=SOFT_ROBO_TIMESTEPS, trainper=trainper, test=test)
     else:
         return chaos_train_test_split(system, duration=DURATION[system], trainper=trainper, dt=DT[system], test=test)
 
