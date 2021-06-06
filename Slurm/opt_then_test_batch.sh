@@ -15,7 +15,8 @@ SYSTEM=$1
 MAP_INITIAL=$2
 PREDICTION_TYPE=$3
 METHOD=$4
-LOGDIR=$5
+RCDIR=$5
+LOGDIR=$6
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
