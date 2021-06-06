@@ -2,7 +2,7 @@
 """
 Script to perform hyperparameter optimization on a reservoir computer with the specified options.
 Run as:
-    python3 opt_then_test.py SYSTEM MAP_INITIAL PREDICTION_TYPE METHOD [options...]
+    python3 opt_then_test.py SYSTEM MAP_INITIAL PREDICTION_TYPE METHOD [Results directory] [options...]
 
 ### Script arguments ###
 Choose SYSTEM from ["lorenz", "rossler", "thomas", "softrobo"]
@@ -16,6 +16,7 @@ Additional options:
 """
 
 import sys
+from datetime import datetime
 
 #Check for sufficient arguments before importing anything
 if __name__ == "__main__":
@@ -29,6 +30,14 @@ if __name__ == "__main__":
     MAP_INITIAL = argv[2]
     PREDICTION_TYPE = argv[3]
     METHOD = argv[4]
+    
+    TIMESTAMP = "{:%y%m%d%H%M%S}".format(datetime.now())
+    
+    if len(argv) > 5:
+        results_directory = argv[5]
+    else:
+        results_directory = None
+    
 else:
     SYSTEM = None
     MAP_INITIAL = None
@@ -44,6 +53,7 @@ import pickle as pkl
 import numpy as np
 import rescomp as rc
 from scipy.io import loadmat
+from os import mkdir
 
 ### Constants
 #Load from the relevant .py file
@@ -150,8 +160,8 @@ def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     Dtr, Dts = D[:split_idx, :], D[split_idx:, :]
     if test == "random":
         t, U, D = load_robo(SMALL_ROBO_DATA)
-        split_idx = int(np.floor(len(t) * trainper))
-        test_timesteps = min(timesteps,len(t)) - split_idx
+        #Make sure the slice isn't too large
+        test_timesteps = int(np.floor(min(timesteps,len(t)) * trainper))
         ts, Uts, Dts = random_slice(t, U, D, test_timesteps)
     return tr, (Utr, Dtr), (ts, Dts), Uts
 
@@ -328,6 +338,18 @@ def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
 if __name__ == "__main__":
     if "--test" in options:
         print("Running in test mode")
+
+    #Find the data directory if none was given as an argument
+    if results_directory is None:
+        results_directory = "_".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD,TIMESTAMP))
+        if "--test" in options:
+            results_directory = "TEST-" + results_directory
+        results_directory = DATADIR + SYSTEM + "/" + results_directory
+    #Make sure the data directory exists
+    try:
+        mkdir(results_directory)
+    except FileExistsError:
+        pass
         
     ### Optimize hyperparameters
     param_names = RES_OPT_PRMS
@@ -368,7 +390,7 @@ if __name__ == "__main__":
         study.add_observation(trial=trial,
                               objective=exp_vpt)
         study.finalize(trial)
-        study.save(DATADIR + SYSTEM) # Need separate directories for each method etc
+        study.save(results_directory) # Need separate directories for each method etc
 
     ### Choose the best hyper parameters
     # For some reason this function actually just returns a dictionary 
@@ -424,11 +446,12 @@ if __name__ == "__main__":
 
     # Save results dictionary with a semi-unique name.
     #   Could add a timestamp or something for stronger uniqueness
-    results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)) + ".pkl"
+    results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD, TIMESTAMP)) + ".pkl"
     if "--test" in options:
         results_filename = "TEST-" + results_filename
-    with open(DATADIR + SYSTEM + "/" + results_filename, 'wb') as file:
+    with open(results_directory + "/" + results_filename, 'wb') as file:
         pkl.dump(results, file)
     
     if "--test" in options:
         print("Testing ran successfully")
+        print(f"Results written to {results_directory}/{results_filename}.")
