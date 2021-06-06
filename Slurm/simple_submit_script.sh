@@ -17,7 +17,7 @@ for system in ${SYSTEMS[@]}; do
                                 LOGDIR=$RCDIR"/Data/"$system"_"$map_initial"_"$prediction_type"_"$method"_"$TIMESTAMP
                                 mkdir $LOGDIR
                                 FLAGS="-o $LOGDIR/slurm-%a.out --time=04:00:00 --ntasks=1 --nodes=1 --mem-per-cpu=1024M -J "$system"_"$map_initial"_"$prediction_type"_"$method
-                                sbatch $FLAGS $SCRIPT_DIR/opt_then_test_batch.sh $system $map_initial $prediction_type $method $LOGDIR
+                                sbatch $FLAGS $SCRIPT_DIR/opt_then_test_batch.sh $system $map_initial $prediction_type $method $RCDIR $LOGDIR
                         done
                 done
         done
