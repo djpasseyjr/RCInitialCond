@@ -25,7 +25,7 @@ DURATION = {
     "lorenz": 10,
     "rossler": 40,
     "thomas": 100,
-    "softrobo": 1000
+    "softrobot": 1000
 }
 # Parameters to optimize in the reservoir computer
 RES_OPT_PRMS = [
