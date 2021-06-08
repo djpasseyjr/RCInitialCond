@@ -175,7 +175,7 @@ def chaos_train_test_split(system, duration=10, trainper=0.66, dt=0.01, test="co
 
 def train_test_data(system, trainper=0.66, test="continue"):
     """ Load train test data for a given system """
-    if system == "softrobo":
+    if system == "softrobot":
         return robo_train_test_split(timesteps=SOFT_ROBO_TIMESTEPS, trainper=trainper, test=test)
     else:
         return chaos_train_test_split(system, duration=DURATION[system], trainper=trainper, dt=DT[system], test=test)
