@@ -2,19 +2,21 @@
 """
 Script to perform hyperparameter optimization on a reservoir computer with the specified options.
 Run as:
-    python3 opt_then_test.py SYSTEM MAP_INITIAL PREDICTION_TYPE METHOD [options...]
+    python3 opt_then_test.py SYSTEM MAP_INITIAL PREDICTION_TYPE METHOD [Results directory] [options...]
 
 ### Script arguments ###
-Choose SYSTEM from ["lorenz", "rossler", "thomas", "softrobo"]
+Choose SYSTEM from ["lorenz", "rossler", "thomas", "softrobot"]
 Choose MAP_INITIAL from ["random", "activ_f", "relax"]
 Choose PREDICTION_TYPE from ["continue", "random"]
 Choose METHOD from ["standard", "augmented"]
 
 Additional options:
     "--test" - run with testing values.
+    "--dashboard" - enable the sherpa dashboard. Not supported on Windows.
 """
 
 import sys
+from datetime import datetime
 
 #Check for sufficient arguments before importing anything
 if __name__ == "__main__":
@@ -28,6 +30,14 @@ if __name__ == "__main__":
     MAP_INITIAL = argv[2]
     PREDICTION_TYPE = argv[3]
     METHOD = argv[4]
+    
+    TIMESTAMP = "{:%y%m%d%H%M%S}".format(datetime.now())
+    
+    if len(argv) > 5:
+        results_directory = argv[5]
+    else:
+        results_directory = None
+    
 else:
     SYSTEM = None
     MAP_INITIAL = None
@@ -43,6 +53,7 @@ import pickle as pkl
 import numpy as np
 import rescomp as rc
 from scipy.io import loadmat
+from os import mkdir
 
 ### Constants
 #Load from the relevant .py file
@@ -74,22 +85,32 @@ RES_DEFAULTS["map_initial"] = MAP_INITIAL
 # Basically change loadprior function to produce the parameters given above
 # in a format that sherpa can read
 
-def loadprior(system):
+def loadprior(system, paramnames):
     """Load best parameters from random searches (Computed previously).
+    Parameters not included are set to a default value found in the parameters files.
     Parameters:
         system (string): name of the system type being used
+        paramnames (list of strings): name of parameters to keep
     Returns:
         priorprms (List of dictionaries): sets of hyperparameters known to be good"""
     #As far as I can tell, the sherpa function we're giving this to 
     #   wants a list of hyperparameter dictionaries, or a pandas.Dataframe
     #   object of unknown formatting
+    def _clean_prior(prior):
+        """Removes unneeded parameters and adds all needed parameters"""
+        prior = {**PRIOR_DEFAULTS, **prior}
+        prior = {key:prior[key] for key in prior if key in paramnames}
+        return prior
+        
     try:
-        with open(f"{system}_prior.pkl", "rb") as file:
+        with open(DATADIR + f"{system}_prior.pkl", "rb") as file:
             priorprms = pkl.load(file)
             if type(priorprms) is dict:
-                #Wrap it in a list
-                return [priorprms]
+                #Clean and wrap in a list
+                return [_clean_prior(priorprms)]
             elif type(priorprms) is list:
+                #Clean each item in the list
+                priorprms = [_clean_prior(prms)for prms in priorprms]
                 return priorprms
             else:
                 print(f"Warning: no correctly-formatted prior data found in {system}_prior.pkl", file=sys.stderr)
@@ -139,7 +160,8 @@ def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     Dtr, Dts = D[:split_idx, :], D[split_idx:, :]
     if test == "random":
         t, U, D = load_robo(SMALL_ROBO_DATA)
-        test_timesteps = timesteps - split_idx
+        #Make sure the slice isn't too large
+        test_timesteps = int(np.floor(min(timesteps,len(t)) * trainper))
         ts, Uts, Dts = random_slice(t, U, D, test_timesteps)
     return tr, (Utr, Dtr), (ts, Dts), Uts
 
@@ -154,7 +176,7 @@ def chaos_train_test_split(system, duration=10, trainper=0.66, dt=0.01, test="co
 def train_test_data(system, trainper=0.66, test="continue"):
     """ Load train test data for a given system """
     if system == "softrobo":
-        return robo_train_test_split(timesteps=DURATION[system], trainper=trainper, test=test)
+        return robo_train_test_split(timesteps=SOFT_ROBO_TIMESTEPS, trainper=trainper, test=test)
     else:
         return chaos_train_test_split(system, duration=DURATION[system], trainper=trainper, dt=DT[system], test=test)
 
@@ -187,7 +209,7 @@ def trained_rcomp(system, tr, Utr, resprms, methodprms):
     Returns:
         rcomp (ResComp): Trained reservoir computer
     """
-    if system == "softrobo":
+    if system == "softrobot":
         rcomp = rc.DrivenResComp(**resprms)
         rcomp.train(tr, *Utr, **methodprms)
     else:
@@ -205,7 +227,7 @@ def rcomp_prediction(system, rcomp, predargs, init_cond):
     Returns:
         pre (ndarray): Reservoir computer prediction
     """
-    if system == "softrobo":
+    if system == "softrobot":
         pre = rcomp.predict(*predargs, **init_cond)
     else:
         pre = rcomp.predict(predargs, **init_cond)
@@ -230,7 +252,7 @@ def build_params(opt_prms, combine=False):
         combine (bool): default False; whether to return all parameters as a single dictionary
     """
     if combine:
-        if SYSTEM == "softrobo":
+        if SYSTEM == "softrobot":
             return {**opt_prms, **RES_DEFAULTS, **ROBO_DEFAULTS}
         else:
             return {**opt_prms, **RES_DEFAULTS}
@@ -243,7 +265,7 @@ def build_params(opt_prms, combine=False):
         else:
             resprms[k] = opt_prms[k]
     resprms = {**resprms, **RES_DEFAULTS}
-    if SYSTEM == "softrobo":
+    if SYSTEM == "softrobot":
         resprms = {**resprms, **ROBO_DEFAULTS} # Updates signal_dim and adds drive_dim
     return resprms, methodprms
 
@@ -253,7 +275,7 @@ def vpt(*args, **kwargs):
         Parameters:
         -----------
         system (str): The name of the system from which to generate training data.
-            One of: `["lorenz", "rossler", "thomas", "softrobo"]`
+            One of: `["lorenz", "rossler", "thomas", "softrobot"]`
         pred_type: Predict continuation of training trajectory or predict evolution
             of a random initial condition. One of: `["continue", "random"]`
         method: Training methodology. One of `["standard", "aumented"]`
@@ -292,7 +314,7 @@ def get_vptime(system, ts, Uts, pre):
     """
     err = nrmse(Uts, pre)
     idx = valid_prediction_index(err, VPTTOL)
-    if system == "softrobo":
+    if system == "softrobot":
         vptime = ts[0][idx-1] - ts[0][0]
     else:
         vptime = ts[idx-1] - ts[0]
@@ -300,12 +322,12 @@ def get_vptime(system, ts, Uts, pre):
 
 def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
     """ Average lyapunov exponent across LYAP_REPS repititions """
-    if SYSTEM == "softrobo":
+    if SYSTEM == "softrobot":
         ts, D = ts
     lam = 0
     for i in range(LYAP_REPS):
         delta0 = np.random.randn(r0.shape[0]) * pert_size
-        if SYSTEM == "softrobo":
+        if SYSTEM == "softrobot":
             predelta = rcomp.predict(ts, D, r0=r0+delta0)
         else:
             predelta = rcomp.predict(ts, r0=r0+delta0)
@@ -314,6 +336,21 @@ def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
     return lam / LYAP_REPS
 
 if __name__ == "__main__":
+    if "--test" in options:
+        print("Running in test mode")
+
+    #Find the data directory if none was given as an argument
+    if results_directory is None:
+        results_directory = "_".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD,TIMESTAMP))
+        if "--test" in options:
+            results_directory = "TEST-" + results_directory
+        results_directory = DATADIR + SYSTEM + "/" + results_directory
+    #Make sure the data directory exists
+    try:
+        mkdir(results_directory)
+    except FileExistsError:
+        pass
+        
     ### Optimize hyperparameters
     param_names = RES_OPT_PRMS
     parameters = [
@@ -335,14 +372,14 @@ if __name__ == "__main__":
     if METHOD == "augmented":
         parameters += augmentedprms
         param_names += METHOD_PRMS
-    if SYSTEM == "softrobo":
+    if SYSTEM == "softrobot":
         parameters += roboprms
         param_names += ROBO_OPT_PRMS
 
     # Bayesian hyper parameter optimization
-    priorprms = loadprior(SYSTEM)
+    priorprms = loadprior(SYSTEM, param_names)
     algorithm = sherpa.algorithms.GPyOpt(max_num_trials=OPT_NTRIALS, initial_data_points=priorprms)
-    disable_dashboard = (sys.platform in ['cygwin', 'win32'])
+    disable_dashboard = (sys.platform in ['cygwin', 'win32']) or ("--dashboard" not in options)
     study = sherpa.Study(parameters=parameters,
                      algorithm=algorithm,
                      disable_dashboard=disable_dashboard,
@@ -353,7 +390,7 @@ if __name__ == "__main__":
         study.add_observation(trial=trial,
                               objective=exp_vpt)
         study.finalize(trial)
-        study.save(DATADIR + SYSTEM) # Need separate directories for each method etc
+        study.save(results_directory) # Need separate directories for each method etc
 
     ### Choose the best hyper parameters
     # For some reason this function actually just returns a dictionary 
@@ -367,6 +404,9 @@ if __name__ == "__main__":
 
     ### Test the training method
     results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
+    results["experiment"] = (SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)
+    results["opt_parameters"] = optimized_hyperprms
+    results["is_test"] = ("--test" in options)
 
     for k in range(NSAVED_ORBITS):
         tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="continue")
@@ -380,7 +420,7 @@ if __name__ == "__main__":
         vptime = get_vptime(SYSTEM, ts, Uts, pre)
         results["continue"].append(vptime)
         ## Continued Derivative fit
-        if SYSTEM != "softrobo":
+        if SYSTEM != "softrobot":
             err = rc.system_fit_error(ts, pre, SYSTEM)
             trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
             results["cont_deriv_fit"].append((trueerr, err))
@@ -392,7 +432,7 @@ if __name__ == "__main__":
         vptime = get_vptime(SYSTEM, ts, Uts, pre)
         results["random"].append(vptime)
         ## Random Derivative fit
-        if SYSTEM != "softrobo":
+        if SYSTEM != "softrobot":
             err = rc.system_fit_error(ts, pre, SYSTEM)
             trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
             results["rand_deriv_fit"].append((trueerr, err))
@@ -401,7 +441,7 @@ if __name__ == "__main__":
         if "r0" in init_cond.keys():
             r0 = init_cond["r0"]
         else:
-            if SYSTEM == "softrobo":
+            if SYSTEM == "softrobot":
                 r0 = rcomp.initial_condition(init_cond["u0"], ts[1][0,:])
             else:
                 r0 = rcomp.initial_condition(init_cond["u0"])
@@ -409,11 +449,12 @@ if __name__ == "__main__":
 
     # Save results dictionary with a semi-unique name.
     #   Could add a timestamp or something for stronger uniqueness
-    results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)) + ".pkl"
+    results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD, TIMESTAMP)) + ".pkl"
     if "--test" in options:
         results_filename = "TEST-" + results_filename
-    with open(DATADIR + SYSTEM + results_filename, 'wb') as file:
+    with open(results_directory + "/" + results_filename, 'wb') as file:
         pkl.dump(results, file)
     
     if "--test" in options:
         print("Testing ran successfully")
+        print(f"Results written to {results_directory}/{results_filename}.")
