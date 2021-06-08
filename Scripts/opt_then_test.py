@@ -188,7 +188,7 @@ def nrmse(true, pred):
         err (ndarray): Error at each time value. 1D array with m entries
     """
     sig = np.std(true, axis=0)
-    err = np.mean( (true - pred)**2 / sig, axis=0)**.5
+    err = np.linalg.norm((true-pred) / sig, axis=1, ord=2)
     return err
 
 def valid_prediction_index(err, tol):
