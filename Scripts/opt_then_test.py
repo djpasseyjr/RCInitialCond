@@ -404,6 +404,9 @@ if __name__ == "__main__":
 
     ### Test the training method
     results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
+    results["experiment"] = (SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)
+    results["opt_parameters"] = optimized_hyperprms
+    results["is_test"] = ("--test" in options)
 
     for k in range(NSAVED_ORBITS):
         tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="continue")
