@@ -167,7 +167,7 @@ def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
 
 def chaos_train_test_split(system, duration=10, trainper=0.66, dt=0.01, test="continue"):
     """ Chaotic system train and test data"""
-    tr, Utr, ts, Uts = rc.train_test_orbit(system, duration=duration, trainper=trainper)
+    tr, Utr, ts, Uts = rc.train_test_orbit(system, duration=duration, trainper=trainper, dt=dt)
     if test == "random":
         test_duration = trainper * duration
         ts, Uts = rc.orbit(system, duration=test_duration, trim=True)
@@ -314,10 +314,16 @@ def get_vptime(system, ts, Uts, pre):
     """
     err = nrmse(Uts, pre)
     idx = valid_prediction_index(err, VPTTOL)
-    if system == "softrobot":
-        vptime = ts[0][idx-1] - ts[0][0]
+    if idx == 0:
+        vptime = 0.
     else:
-        vptime = ts[idx-1] - ts[0]
+        if system == "softrobot":
+            vptime = ts[0][idx-1] - ts[0][0]
+        else:
+            vptime = ts[idx-1] - ts[0]
+        
+    #if "--test" in options:
+    #    print(vptime)
     return vptime
 
 def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
