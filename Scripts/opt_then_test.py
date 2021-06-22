@@ -142,24 +142,22 @@ def random_slice(*args, axis=0):
     As, slicesize = args[:-1], args[-1]
     start = np.random.randint(0, high=len(As[0]) - slicesize + 1)
     end = start + slicesize
-    slices = ()
-    for A in As:
-        if axis == 0:
-            slices += (A[start:end],)
-        if axis == 1:
-            slices += (A[:, start:end],)
+    if axis == 0:
+        slices = (A[start:end] for A in As)
+    if axis == 1:
+        slices = (A[:, start:end] for A in As)
     return slices
 
 def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     """Split robot data into training and test chunks """
-    t, U, D = load_robo(BIG_ROBO_DATA)
+    t, U, D = BIG_ROBO_DATA_LOADED
     t, U, D = random_slice(t, U, D, timesteps)
     split_idx = int(np.floor(len(t) * trainper))
     tr, ts = t[:split_idx], t[split_idx:]
     Utr, Uts = U[:split_idx, :], U[split_idx:, :]
     Dtr, Dts = D[:split_idx, :], D[split_idx:, :]
     if test == "random":
-        t, U, D = load_robo(SMALL_ROBO_DATA)
+        t, U, D = SMALL_ROBO_DATA_LOADED
         #Make sure the slice isn't too large
         test_timesteps = int(np.floor(min(timesteps,len(t)) * trainper))
         ts, Uts, Dts = random_slice(t, U, D, test_timesteps)
@@ -167,10 +165,13 @@ def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
 
 def chaos_train_test_split(system, duration=10, trainper=0.66, dt=0.01, test="continue"):
     """ Chaotic system train and test data"""
-    tr, Utr, ts, Uts = rc.train_test_orbit(system, duration=duration, trainper=trainper, dt=dt)
     if test == "random":
-        test_duration = trainper * duration
+        train_duration = trainper * duration
+        test_duration = duration - train_duration
+        tr, Utr = rc.orbit(system, duration=train_duration, trim=True)
         ts, Uts = rc.orbit(system, duration=test_duration, trim=True)
+    else:
+        tr, Utr, ts, Uts = rc.train_test_orbit(system, duration=duration, trainper=trainper, dt=dt)
     return tr, Utr, ts, Uts
 
 def train_test_data(system, trainper=0.66, test="continue"):
@@ -192,11 +193,11 @@ def nrmse(true, pred):
     return err
 
 def valid_prediction_index(err, tol):
-    "First index i where err[i] > tol. err is assumed to be 1D and tol is a float"
-    for i in range(len(err)):
-        if err[i] > tol:
-            return i
-    return i
+    "First index i where err[i] > tol. err is assumed to be 1D and tol is a float. If err is never greater than tol, then len(err) is returned."
+    mask = err > tol
+    if np.any(mask):
+        return np.argmax(mask)
+    return len(err)
 
 def trained_rcomp(system, tr, Utr, resprms, methodprms):
     """ Returns a reservoir computer trained with the given data and parameters
@@ -381,6 +382,9 @@ if __name__ == "__main__":
     if SYSTEM == "softrobot":
         parameters += roboprms
         param_names += ROBO_OPT_PRMS
+        #Load robot data
+        BIG_ROBO_DATA_LOADED = load_robo(BIG_ROBO_DATA)
+        SMALL_ROBO_DATA_LOADED = load_robo(SMALL_ROBO_DATA)
 
     # Bayesian hyper parameter optimization
     priorprms = loadprior(SYSTEM, param_names)
@@ -405,8 +409,7 @@ if __name__ == "__main__":
     # Trim to only have the actual parameters
     optimized_hyperprms = {key:optimized_hyperprms[key] for key in param_names}
 
-    if "--test" in options:
-        print("Optimization ran successfully")
+    print("Optimization ran successfully")
 
     ### Test the training method
     results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
@@ -461,6 +464,5 @@ if __name__ == "__main__":
     with open(results_directory + "/" + results_filename, 'wb') as file:
         pkl.dump(results, file)
     
-    if "--test" in options:
-        print("Testing ran successfully")
-        print(f"Results written to {results_directory}/{results_filename}.")
+    print("Testing ran successfully")
+    print(f"Results written to {results_directory}/{results_filename}.")
