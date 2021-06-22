@@ -411,8 +411,7 @@ if __name__ == "__main__":
     # Trim to only have the actual parameters
     optimized_hyperprms = {key:optimized_hyperprms[key] for key in param_names}
 
-    if "--test" in options:
-        print("Optimization ran successfully")
+    print("Optimization ran successfully")
 
     ### Test the training method
     results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
@@ -467,6 +466,5 @@ if __name__ == "__main__":
     with open(results_directory + "/" + results_filename, 'wb') as file:
         pkl.dump(results, file)
     
-    if "--test" in options:
-        print("Testing ran successfully")
-        print(f"Results written to {results_directory}/{results_filename}.")
+    print("Testing ran successfully")
+    print(f"Results written to {results_directory}/{results_filename}.")
