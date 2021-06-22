@@ -167,10 +167,13 @@ def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
 
 def chaos_train_test_split(system, duration=10, trainper=0.66, dt=0.01, test="continue"):
     """ Chaotic system train and test data"""
-    tr, Utr, ts, Uts = rc.train_test_orbit(system, duration=duration, trainper=trainper, dt=dt)
     if test == "random":
-        test_duration = trainper * duration
+        train_duration = trainper * duration
+        test_duration = duration - train_duration
+        tr, Utr = rc.orbit(system, duration=train_duration, trim=True)
         ts, Uts = rc.orbit(system, duration=test_duration, trim=True)
+    else:
+        tr, Utr, ts, Uts = rc.train_test_orbit(system, duration=duration, trainper=trainper, dt=dt)
     return tr, Utr, ts, Uts
 
 def train_test_data(system, trainper=0.66, test="continue"):
