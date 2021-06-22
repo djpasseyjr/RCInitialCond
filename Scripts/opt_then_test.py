@@ -142,12 +142,10 @@ def random_slice(*args, axis=0):
     As, slicesize = args[:-1], args[-1]
     start = np.random.randint(0, high=len(As[0]) - slicesize + 1)
     end = start + slicesize
-    slices = ()
-    for A in As:
-        if axis == 0:
-            slices += (A[start:end],)
-        if axis == 1:
-            slices += (A[:, start:end],)
+    if axis == 0:
+        slices = (A[start:end] for A in As)
+    if axis == 1:
+        slices = (A[:, start:end] for A in As)
     return slices
 
 def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
@@ -195,11 +193,11 @@ def nrmse(true, pred):
     return err
 
 def valid_prediction_index(err, tol):
-    "First index i where err[i] > tol. err is assumed to be 1D and tol is a float"
-    for i in range(len(err)):
-        if err[i] > tol:
-            return i
-    return i
+    "First index i where err[i] > tol. err is assumed to be 1D and tol is a float. If err is never greater than tol, then len(err) is returned."
+    mask = err > tol
+    if np.any(mask):
+        return np.argmax(mask)
+    return len(err)
 
 def trained_rcomp(system, tr, Utr, resprms, methodprms):
     """ Returns a reservoir computer trained with the given data and parameters
