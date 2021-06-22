@@ -152,14 +152,14 @@ def random_slice(*args, axis=0):
 
 def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     """Split robot data into training and test chunks """
-    t, U, D = load_robo(BIG_ROBO_DATA)
+    t, U, D = BIG_ROBO_DATA_LOADED
     t, U, D = random_slice(t, U, D, timesteps)
     split_idx = int(np.floor(len(t) * trainper))
     tr, ts = t[:split_idx], t[split_idx:]
     Utr, Uts = U[:split_idx, :], U[split_idx:, :]
     Dtr, Dts = D[:split_idx, :], D[split_idx:, :]
     if test == "random":
-        t, U, D = load_robo(SMALL_ROBO_DATA)
+        t, U, D = SMALL_ROBO_DATA_LOADED
         #Make sure the slice isn't too large
         test_timesteps = int(np.floor(min(timesteps,len(t)) * trainper))
         ts, Uts, Dts = random_slice(t, U, D, test_timesteps)
@@ -384,6 +384,9 @@ if __name__ == "__main__":
     if SYSTEM == "softrobot":
         parameters += roboprms
         param_names += ROBO_OPT_PRMS
+        #Load robot data
+        BIG_ROBO_DATA_LOADED = load_robo(BIG_ROBO_DATA)
+        SMALL_ROBO_DATA_LOADED = load_robo(SMALL_ROBO_DATA)
 
     # Bayesian hyper parameter optimization
     priorprms = loadprior(SYSTEM, param_names)
