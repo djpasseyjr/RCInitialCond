@@ -368,7 +368,7 @@ if __name__ == "__main__":
         sherpa.Continuous(name='mean_degree', range=[0.1, 5]),
     ]
     augmentedprms = [
-        sherpa.Continuous(name='window', range=[0.1, 10]),
+        sherpa.Continuous(name='window', range=[10*DT[SYSTEM], 1000*DT[SYSTEM]),
         sherpa.Ordinal(name='overlap', range=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95])
         #Alternative:
         #sherpa.Continuous(name='overlap', range=[0.0, 0.95])
@@ -396,7 +396,13 @@ if __name__ == "__main__":
                      lower_is_better=False)
 
     for trial in study:
-        exp_vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters, combine=True))
+        try:
+            exp_vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters, combine=True))
+        except Exception as e:
+            print("Error encountered.")
+            print("Current experiment:", SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)
+            print("Parameter set:", build_params(trial.parameters, combine=True))
+            raise e
         study.add_observation(trial=trial,
                               objective=exp_vpt)
         study.finalize(trial)
