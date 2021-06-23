@@ -18,7 +18,8 @@ LYAP_REPS = 10
 DT = {
     "lorenz": 0.01,
     "rossler": 0.01,
-    "thomas": 0.1
+    "thomas": 0.1,
+    "softrobot": 0.01
 }
 # Max orbit time
 DURATION = {
