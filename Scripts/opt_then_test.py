@@ -368,7 +368,7 @@ if __name__ == "__main__":
         sherpa.Continuous(name='mean_degree', range=[0.1, 5]),
     ]
     augmentedprms = [
-        sherpa.Continuous(name='window', range=[10*DT[SYSTEM], 1000*DT[SYSTEM]),
+        sherpa.Continuous(name='window', range=[10*DT[SYSTEM], 1000*DT[SYSTEM]]),
         sherpa.Ordinal(name='overlap', range=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95])
         #Alternative:
         #sherpa.Continuous(name='overlap', range=[0.0, 0.95])
