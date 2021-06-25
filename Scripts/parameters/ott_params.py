@@ -24,7 +24,7 @@ DT = {
 # Max orbit time
 DURATION = {
     "lorenz": 10,
-    "rossler": 150,
+    "rossler": 250,
     "thomas": 1000
 }
 
