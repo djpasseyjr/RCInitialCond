@@ -254,9 +254,9 @@ def build_params(opt_prms, combine=False):
     """
     if combine:
         if SYSTEM == "softrobot":
-            return {**opt_prms, **RES_DEFAULTS, **ROBO_DEFAULTS}
+            return {**RES_DEFAULTS, **opt_prms, **ROBO_DEFAULTS}
         else:
-            return {**opt_prms, **RES_DEFAULTS}
+            return {**RES_DEFAULTS, **opt_prms}
             
     resprms = {}
     methodprms = {}
@@ -265,7 +265,7 @@ def build_params(opt_prms, combine=False):
             methodprms[k] = opt_prms[k]
         else:
             resprms[k] = opt_prms[k]
-    resprms = {**resprms, **RES_DEFAULTS}
+    resprms = {**RES_DEFAULTS, **resprms}
     if SYSTEM == "softrobot":
         resprms = {**resprms, **ROBO_DEFAULTS} # Updates signal_dim and adds drive_dim
     return resprms, methodprms
