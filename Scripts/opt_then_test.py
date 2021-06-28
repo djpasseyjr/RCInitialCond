@@ -100,6 +100,7 @@ def _set_experiment(*args):
     """
     SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD = args
     EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
+    RES_DEFAULTS["map_initial"] = MAP_INITIAL
     
 def loadprior(system, paramnames):
     """Load best parameters from random searches (Computed previously).
@@ -322,7 +323,7 @@ def mean_vpt(*args, **kwargs):
     """ Average valid prediction time across OPT_VPT_REPS repetitions. Handles parallel processing. """
     if PARALLEL:
         loop_ct = int(np.ceil(OPT_VPT_REPS / node_count))
-        vpt_results = dview.apply_sync(lambda *a, **k: [vpt(*a,**k) for _ in range(loop_ct)], *args, **kwargs)
+        vpt_results = dview.apply_sync(lambda ct, *a, **k: [vpt(*a,**k) for _ in range(ct)], loop_ct, *args, **kwargs)
         return np.sum(vpt_results) / (loop_ct * node_count)
     else:
         tot_vpt = 0
@@ -362,6 +363,60 @@ def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
         i = rc.accduration(pre, predelta)
         lam += rc.lyapunov(ts[:i], pre[:i, :], predelta[:i, :], delta0)
     return lam / LYAP_REPS
+    
+def test_all(system, optimized_hyperprms):
+    """
+    Tests a set of optimized hyperparameters for continue and random predictions and derivative fit, as well as Lyapunov exponent.
+    Returns, in order:
+        Continue vptime
+        Random vptime
+        Lyapunov exponent
+        Continue deriv fit
+        Random deriv fit
+    The derivative fits will be None if system=='softrobot'.
+    """
+    results = [None]*5
+    
+    tr, Utr, ts, Uts = train_test_data(system, trainper=TRAINPER, test="continue")
+    resprms, methodprms = build_params(optimized_hyperprms)
+    rcomp = trained_rcomp(system, tr, Utr, resprms, methodprms)
+    
+    ## Continued Prediction
+    init_cond = make_initial("continue", rcomp, Uts)
+    pre = rcomp_prediction(system, rcomp, ts, init_cond)
+    # Compute error and deduce valid prediction time
+    vptime = get_vptime(system, ts, Uts, pre)
+    results[0] = vptime
+    
+    ## Continued Derivative fit
+    if system != "softrobot":
+        err = rc.system_fit_error(ts, pre, system)
+        trueerr = rc.system_fit_error(ts, Uts, system)
+        results[3] = (trueerr, err)
+
+    ## Random Prediction
+    tr, Utr, ts, Uts = train_test_data(system, trainper=TRAINPER, test="random")
+    init_cond = make_initial("random", rcomp, Uts)
+    pre = rcomp_prediction(system, rcomp, ts, init_cond)
+    vptime = get_vptime(system, ts, Uts, pre)
+    results[1] = vptime
+    
+    ## Random Derivative fit
+    if system != "softrobot":
+        err = rc.system_fit_error(ts, pre, system)
+        trueerr = rc.system_fit_error(ts, Uts, system)
+        results[4] = (trueerr, err)
+    
+    ## Lyapunov Exponent Estimation
+    if "r0" in init_cond.keys():
+        r0 = init_cond["r0"]
+    else:
+        if system == "softrobot":
+            r0 = rcomp.initial_condition(init_cond["u0"], ts[1][0,:])
+        else:
+            r0 = rcomp.initial_condition(init_cond["u0"])
+    results[2] = meanlyap(rcomp, pre, r0, ts)
+    return tuple(results)
 
 if __name__ == "__main__":
     if "--test" in options.keys():
@@ -440,8 +495,6 @@ if __name__ == "__main__":
         study.save(results_directory) # Need separate directories for each method etc
 
     ### Choose the best hyper parameters
-    # For some reason this function actually just returns a dictionary 
-    #   (rather than a pandas.DataFrame), which makes extracting the results easy.
     optimized_hyperprms = study.get_best_result()
     # Trim to only have the actual parameters
     optimized_hyperprms = {key:optimized_hyperprms[key] for key in param_names}
@@ -454,47 +507,31 @@ if __name__ == "__main__":
     results["opt_parameters"] = optimized_hyperprms
     results["is_test"] = ("--test" in options.keys())
 
-    for k in range(NSAVED_ORBITS):
-        tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="continue")
-        resprms, methodprms = build_params(optimized_hyperprms)
-        rcomp = trained_rcomp(SYSTEM, tr, Utr, resprms, methodprms)
+    if PARALLEL:
+        #Run test_all() in parallel
+        loop_ct = int(np.ceil(NSAVED_ORBITS / node_count))
+        test_results = dview.apply_sync(lambda s,p,c:[test_all(s,p) for _ in range(c)], SYSTEM, trial.parameters, loop_ct)
+        #Collect the results
+        for rlist in test_results:
+            for cont_vpt, rand_vpt, lyap, cont_df, rand_df in rlist:
+                results["continue"].append(cont_vpt)
+                results["random"].append(rand_vpt)
+                results["lyapunov"].append(lyap)
+                if SYSTEM != 'softrobot':
+                    results["cont_deriv_fit"].append(cont_df)
+                    results["rand_deriv_fit"].append(rand_df)
+    else:
+        for k in range(NSAVED_ORBITS):
+            cont_vpt, rand_vpt, lyap, cont_df, rand_df = test_all(optimized_hyperprms)
+            results["continue"].append(cont_vpt)
+            results["random"].append(rand_vpt)
+            results["lyapunov"].append(lyap)
+            if SYSTEM != 'softrobot':
+                results["cont_deriv_fit"].append(cont_df)
+                results["rand_deriv_fit"].append(rand_df)
+            
 
-        ## Continued Prediction
-        init_cond = make_initial("continue", rcomp, Uts)
-        pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
-        # Compute error and deduce valid prediction time
-        vptime = get_vptime(SYSTEM, ts, Uts, pre)
-        results["continue"].append(vptime)
-        ## Continued Derivative fit
-        if SYSTEM != "softrobot":
-            err = rc.system_fit_error(ts, pre, SYSTEM)
-            trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
-            results["cont_deriv_fit"].append((trueerr, err))
-
-        ## Random Prediction
-        tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="random")
-        init_cond = make_initial("random", rcomp, Uts)
-        pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
-        vptime = get_vptime(SYSTEM, ts, Uts, pre)
-        results["random"].append(vptime)
-        ## Random Derivative fit
-        if SYSTEM != "softrobot":
-            err = rc.system_fit_error(ts, pre, SYSTEM)
-            trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
-            results["rand_deriv_fit"].append((trueerr, err))
-        
-        ## Lyapunov Exponent Estimation
-        if "r0" in init_cond.keys():
-            r0 = init_cond["r0"]
-        else:
-            if SYSTEM == "softrobot":
-                r0 = rcomp.initial_condition(init_cond["u0"], ts[1][0,:])
-            else:
-                r0 = rcomp.initial_condition(init_cond["u0"])
-        results["lyapunov"].append(meanlyap(rcomp, pre, r0, ts))
-
-    # Save results dictionary with a semi-unique name.
-    #   Could add a timestamp or something for stronger uniqueness
+    # Save results dictionary with a unique name.
     results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD, TIMESTAMP)) + ".pkl"
     if "--test" in options.keys():
         results_filename = "TEST-" + results_filename
