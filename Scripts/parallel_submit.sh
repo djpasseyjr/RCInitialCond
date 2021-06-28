@@ -19,18 +19,14 @@ profile=slurm_${SLURM_JOB_ID}_$(hostname)
 echo "Creating profile ${profile}"
 ipython profile create ${profile}
 
-rundir=$(pwd)
-cd ~
 
 echo "Launching controller"
-.local/bin/ipcontroller --ip="*" --profile=${profile} --log-to-file &
+~/.local/bin/ipcontroller --ip="*" --profile=${profile} --log-to-file &
 sleep 10
 
 echo "Launching engines"
-srun .local/bin/ipengine --profile=${profile} --location=$(hostname) --log-to-file &
+srun ~/.local/bin/ipengine --profile=${profile} --location=$(hostname) --log-to-file &
 sleep 30
-
-cd $rundir
 
 echo "Launching job"
 python opt_then_test.py $SYSTEM $MAP_INITIAL $PREDICTION_TYPE $METHOD $LOGDIR --parallel=${profile}
