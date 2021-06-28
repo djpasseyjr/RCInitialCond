@@ -13,6 +13,7 @@ Choose METHOD from ["standard", "augmented"]
 Additional options:
     "--test" - run with testing values.
     "--dashboard" - enable the sherpa dashboard. Not supported on Windows.
+    "--parallel" - use parallel processing, on all accessible nodes. Only partly compatible with --test mode.
 """
 
 import sys
@@ -46,7 +47,7 @@ else:
     options = set()
     argv = sys.argv
 EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
-    
+PARALLEL = ("--parallel" in options)
 
 import sherpa
 import pickle as pkl
@@ -55,6 +56,10 @@ import rescomp as rc
 from scipy.io import loadmat
 from os import mkdir
 
+if PARALLEL:
+    from ipyparallel import Client
+    dview = None
+    
 ### Constants
 #Load from the relevant .py file
 if "--test" in options:
@@ -85,6 +90,13 @@ RES_DEFAULTS["map_initial"] = MAP_INITIAL
 # Basically change loadprior function to produce the parameters given above
 # in a format that sherpa can read
 
+def _set_experiment(*args):
+    """
+    A helper method to make it easier to set which experiment is being used if this file is imported.
+    """
+    SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD = args
+    EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
+    
 def loadprior(system, paramnames):
     """Load best parameters from random searches (Computed previously).
     Parameters not included are set to a default value found in the parameters files.
@@ -121,7 +133,7 @@ def loadprior(system, paramnames):
     return []
 
 def load_robo(filename):
-    """Load soft robot order"""
+    """Load soft robot data"""
     data = loadmat(DATADIR + filename)
     t = data['t'][0]
     q = data['q']
@@ -303,11 +315,14 @@ def vpt(*args, **kwargs):
     return vptime
 
 def mean_vpt(*args, **kwargs):
-    """ Average valid prediction time across OPT_VPT_REPS repetitions """
-    tot_vpt = 0
-    for i in range(OPT_VPT_REPS):
-        tot_vpt += vpt(*args, **kwargs)
-    return tot_vpt/OPT_VPT_REPS
+    """ Average valid prediction time across OPT_VPT_REPS repetitions. Handles parallel processing. """
+    if PARALLEL:
+        pass
+    else:
+        tot_vpt = 0
+        for i in range(OPT_VPT_REPS):
+            tot_vpt += vpt(*args, **kwargs)
+        return tot_vpt/OPT_VPT_REPS
 
 def get_vptime(system, ts, Uts, pre):
     """
@@ -345,6 +360,13 @@ def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
 if __name__ == "__main__":
     if "--test" in options:
         print("Running in test mode")
+    
+    if PARALLEL:
+        client = Client()
+        print(f"Using multithreading; running on {len(client.ids)} nodes."
+        dview = client[:]
+        #dview.execute("import opt_then_test as ott")
+        #dview.apply
 
     #Find the data directory if none was given as an argument
     if results_directory is None:
