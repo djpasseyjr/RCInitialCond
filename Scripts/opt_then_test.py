@@ -13,7 +13,7 @@ Choose METHOD from ["standard", "augmented"]
 Additional options:
     "--test" - run with testing values.
     "--dashboard" - enable the sherpa dashboard. Not supported on Windows.
-    "--parallel" - use parallel processing, on all accessible nodes. Only partly compatible with --test mode.
+    "--parallel=<profile name>" - use parallel processing, on all accessible nodes. Uses the controller with the given profile name.
 """
 
 import sys
@@ -23,7 +23,8 @@ from datetime import datetime
 if __name__ == "__main__":
     #Extract the additional options from sys.argv
     options = {item for item in sys.argv[1:] if item[:2]=="--"}
-    argv = [item for item in sys.argv if item not in options]
+    options = {item.split('=')[0]:'='.join(item.split('=')[1:]) for item in options}
+    argv = [item for item in sys.argv if item not in options.keys()]
     if len(sys.argv) < 5:
         print(__doc__)
         exit()
@@ -44,10 +45,10 @@ else:
     MAP_INITIAL = None
     PREDICTION_TYPE = None
     METHOD = None
-    options = set()
+    options = dict()
     argv = sys.argv
 EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
-PARALLEL = ("--parallel" in options)
+PARALLEL = ("--parallel" in options.keys())
 
 import sherpa
 import pickle as pkl
@@ -59,10 +60,12 @@ from os import mkdir
 if PARALLEL:
     from ipyparallel import Client
     dview = None
+    node_count = 0
+    p_profile = options['--parallel']
     
 ### Constants
 #Load from the relevant .py file
-if "--test" in options:
+if "--test" in options.keys():
     from parameters.ott_test import *
 else:
     from parameters.ott_params import *
@@ -317,7 +320,9 @@ def vpt(*args, **kwargs):
 def mean_vpt(*args, **kwargs):
     """ Average valid prediction time across OPT_VPT_REPS repetitions. Handles parallel processing. """
     if PARALLEL:
-        pass
+        loop_ct = int(np.ceil(OPT_VPT_REPS / node_count))
+        vpt_results = dview.apply_sync(lambda: [vpt(*args,**kwargs) for _ in range(loop_ct)])
+        return np.sum(vpt_results) / (loop_ct * node_count)
     else:
         tot_vpt = 0
         for i in range(OPT_VPT_REPS):
@@ -338,7 +343,7 @@ def get_vptime(system, ts, Uts, pre):
         else:
             vptime = ts[idx-1] - ts[0]
         
-    #if "--test" in options:
+    #if "--test" in options.keys():
     #    print(vptime)
     return vptime
 
@@ -358,20 +363,19 @@ def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
     return lam / LYAP_REPS
 
 if __name__ == "__main__":
-    if "--test" in options:
+    if "--test" in options.keys():
         print("Running in test mode")
     
     if PARALLEL:
-        client = Client()
-        print(f"Using multithreading; running on {len(client.ids)} nodes."
+        client = Client(profile=p_profile)
         dview = client[:]
-        #dview.execute("import opt_then_test as ott")
-        #dview.apply
+        node_count = len(client.ids)
+        print(f"Using multithreading; running on {node_count} nodes.")
 
     #Find the data directory if none was given as an argument
     if results_directory is None:
         results_directory = "_".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD,TIMESTAMP))
-        if "--test" in options:
+        if "--test" in options.keys():
             results_directory = "TEST-" + results_directory
         results_directory = DATADIR + SYSTEM + "/" + results_directory
     #Make sure the data directory exists
@@ -443,7 +447,7 @@ if __name__ == "__main__":
     results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
     results["experiment"] = (SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)
     results["opt_parameters"] = optimized_hyperprms
-    results["is_test"] = ("--test" in options)
+    results["is_test"] = ("--test" in options.keys())
 
     for k in range(NSAVED_ORBITS):
         tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="continue")
@@ -487,7 +491,7 @@ if __name__ == "__main__":
     # Save results dictionary with a semi-unique name.
     #   Could add a timestamp or something for stronger uniqueness
     results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD, TIMESTAMP)) + ".pkl"
-    if "--test" in options:
+    if "--test" in options.keys():
         results_filename = "TEST-" + results_filename
     with open(results_directory + "/" + results_filename, 'wb') as file:
         pkl.dump(results, file)
