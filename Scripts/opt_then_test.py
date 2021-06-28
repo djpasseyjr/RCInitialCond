@@ -13,7 +13,7 @@ Choose METHOD from ["standard", "augmented"]
 Additional options:
     "--test" - run with testing values.
     "--dashboard" - enable the sherpa dashboard. Not supported on Windows.
-    "--parallel=<profile name>" - use parallel processing, on all accessible nodes. Uses the controller with the given profile name.
+    "--parallel=<profile name>" - use parallel processing, on all accessible nodes. Uses the controller with the given profile name. Requires ipyparallel and dill packages to be installed.
 """
 
 import sys
@@ -57,11 +57,6 @@ import rescomp as rc
 from scipy.io import loadmat
 from os import mkdir
 
-if PARALLEL:
-    from ipyparallel import Client
-    dview = None
-    node_count = 0
-    p_profile = options['--parallel']
     
 ### Constants
 #Load from the relevant .py file
@@ -72,6 +67,12 @@ else:
     
 RES_DEFAULTS["map_initial"] = MAP_INITIAL
 
+if PARALLEL:
+    import ipyparallel
+    dview = None
+    node_count = 0
+    p_profile = options['--parallel']
+    
 ### Function definitions
 # These parameters are used as a prior for the bayesian optimization.
 # Decent parameters for each chaotic system are stored in rc.SYSTEMS
@@ -321,7 +322,7 @@ def mean_vpt(*args, **kwargs):
     """ Average valid prediction time across OPT_VPT_REPS repetitions. Handles parallel processing. """
     if PARALLEL:
         loop_ct = int(np.ceil(OPT_VPT_REPS / node_count))
-        vpt_results = dview.apply_sync(lambda: [vpt(*args,**kwargs) for _ in range(loop_ct)])
+        vpt_results = dview.apply_sync(lambda *a, **k: [vpt(*a,**k) for _ in range(loop_ct)], *args, **kwargs)
         return np.sum(vpt_results) / (loop_ct * node_count)
     else:
         tot_vpt = 0
@@ -367,10 +368,14 @@ if __name__ == "__main__":
         print("Running in test mode")
     
     if PARALLEL:
-        client = Client(profile=p_profile)
+        #Set up things for multithreading
+        client = ipyparallel.Client(profile=p_profile)
         dview = client[:]
+        dview.use_dill()
         node_count = len(client.ids)
-        print(f"Using multithreading; running on {node_count} nodes.")
+        print(f"Using multithreading; running on {node_count} engines.")
+        dview.execute('from opt_then_test import *')
+        dview.apply(_set_experiment,SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)
 
     #Find the data directory if none was given as an argument
     if results_directory is None:
