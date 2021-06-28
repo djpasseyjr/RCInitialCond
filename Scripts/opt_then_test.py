@@ -431,6 +431,9 @@ if __name__ == "__main__":
         print(f"Using multithreading; running on {node_count} engines.")
         dview.execute('from opt_then_test import *')
         dview.apply(_set_experiment,SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)
+        if SYSTEM=='softrobot':
+            dview.execute('BIG_ROBO_DATA_LOADED = load_robo(BIG_ROBO_DATA)')
+            dview.execute('SMALL_ROBO_DATA_LOADED = load_robo(SMALL_ROBO_DATA)')
 
     #Find the data directory if none was given as an argument
     if results_directory is None:
