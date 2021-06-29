@@ -500,7 +500,6 @@ if __name__ == "__main__":
                      lower_is_better=False)
 
     for trial in study:
-        test_results = dview.apply_sync(lambda s,p,c:[test_all(s,p) for _ in range(c)], SYSTEM, trial.parameters, 1)
         try:
             exp_vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters, combine=True))
         except Exception as e:
