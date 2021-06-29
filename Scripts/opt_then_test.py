@@ -23,8 +23,8 @@ from datetime import datetime
 if __name__ == "__main__":
     #Extract the additional options from sys.argv
     options = {item for item in sys.argv[1:] if item[:2]=="--"}
+    argv = [item for item in sys.argv if item not in options]
     options = {item.split('=')[0]:'='.join(item.split('=')[1:]) for item in options}
-    argv = [item for item in sys.argv if item not in options.keys()]
     if len(sys.argv) < 5:
         print(__doc__)
         exit()
@@ -269,15 +269,19 @@ def make_initial(pred_type, rcomp, Uts):
         # Use the state space initial condition. (Reservoir will map it to a reservoir node condition)
         return {"u0": Uts[0]}
 
-def build_params(opt_prms, combine=False):
+def build_params(opt_prms, combine=False, system=None):
     """ Extract training method parameters and augment reservoir parameters with defaults.
         Parameters
         ----------
         opt_prms (dict): Dictionary of parameters from the optimizer
         combine (bool): default False; whether to return all parameters as a single dictionary
+        system (string): default None; the system to use. If None, takes the value of the global variable SYSTEM
     """
+    if system is None:
+        system = SYSTEM
+        
     if combine:
-        if SYSTEM == "softrobot":
+        if system == "softrobot":
             return {**RES_DEFAULTS, **opt_prms, **ROBO_DEFAULTS}
         else:
             return {**RES_DEFAULTS, **opt_prms}
@@ -290,7 +294,7 @@ def build_params(opt_prms, combine=False):
         else:
             resprms[k] = opt_prms[k]
     resprms = {**RES_DEFAULTS, **resprms}
-    if SYSTEM == "softrobot":
+    if system == "softrobot":
         resprms = {**resprms, **ROBO_DEFAULTS} # Updates signal_dim and adds drive_dim
     return resprms, methodprms
 
@@ -356,14 +360,17 @@ def get_vptime(system, ts, Uts, pre):
     #    print(vptime)
     return vptime
 
-def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
+def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6, system=None):
     """ Average lyapunov exponent across LYAP_REPS repititions """
-    if SYSTEM == "softrobot":
+    if system is None:
+        system = SYSTEM
+    
+    if system == "softrobot":
         ts, D = ts
     lam = 0
     for i in range(LYAP_REPS):
         delta0 = np.random.randn(r0.shape[0]) * pert_size
-        if SYSTEM == "softrobot":
+        if system == "softrobot":
             predelta = rcomp.predict(ts, D, r0=r0+delta0)
         else:
             predelta = rcomp.predict(ts, r0=r0+delta0)
@@ -385,7 +392,7 @@ def test_all(system, optimized_hyperprms):
     results = [None]*5
     
     tr, Utr, ts, Uts = train_test_data(system, trainper=TRAINPER, test="continue")
-    resprms, methodprms = build_params(optimized_hyperprms)
+    resprms, methodprms = build_params(optimized_hyperprms, system=system)
     rcomp = trained_rcomp(system, tr, Utr, resprms, methodprms)
     
     ## Continued Prediction
@@ -422,7 +429,7 @@ def test_all(system, optimized_hyperprms):
             r0 = rcomp.initial_condition(init_cond["u0"], ts[1][0,:])
         else:
             r0 = rcomp.initial_condition(init_cond["u0"])
-    results[2] = meanlyap(rcomp, pre, r0, ts)
+    results[2] = meanlyap(rcomp, pre, r0, ts, system=system)
     return tuple(results)
 
 if __name__ == "__main__":
@@ -493,6 +500,7 @@ if __name__ == "__main__":
                      lower_is_better=False)
 
     for trial in study:
+        test_results = dview.apply_sync(lambda s,p,c:[test_all(s,p) for _ in range(c)], SYSTEM, trial.parameters, 1)
         try:
             exp_vpt = mean_vpt(*EXPERIMENT, **build_params(trial.parameters, combine=True))
         except Exception as e:
@@ -521,7 +529,7 @@ if __name__ == "__main__":
     if PARALLEL:
         #Run test_all() in parallel
         loop_ct = int(np.ceil(NSAVED_ORBITS / node_count))
-        test_results = dview.apply_sync(lambda s,p,c:[test_all(s,p) for _ in range(c)], SYSTEM, trial.parameters, loop_ct)
+        test_results = dview.apply_sync(lambda s,p,c:[test_all(s,p) for _ in range(c)], SYSTEM, optimized_hyperprms, loop_ct)
         #Collect the results
         for rlist in test_results:
             for cont_vpt, rand_vpt, lyap, cont_df, rand_df in rlist:
