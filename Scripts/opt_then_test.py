@@ -68,7 +68,7 @@ else:
 RES_DEFAULTS["map_initial"] = MAP_INITIAL
 
 if PARALLEL:
-    import ipyparallel
+    import ipyparallel as ipp
     dview = None
     node_count = 0
     p_profile = options['--parallel']
@@ -98,6 +98,7 @@ def _set_experiment(*args):
     """
     A helper method to make it easier to set which experiment is being used if this file is imported.
     """
+    global SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD, EXPERIMENT
     SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD = args
     EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
     RES_DEFAULTS["map_initial"] = MAP_INITIAL
@@ -167,6 +168,12 @@ def random_slice(*args, axis=0):
 
 def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     """Split robot data into training and test chunks """
+    global BIG_ROBO_DATA_LOADED, SMALL_ROBO_DATA_LOADED
+    
+    if 'BIG_ROBO_DATA_LOADED' not in dir():
+        BIG_ROBO_DATA_LOADED = load_robo(BIG_ROBO_DATA)
+        SMALL_ROBO_DATA_LOADED = load_robo(SMALL_ROBO_DATA)
+    
     t, U, D = BIG_ROBO_DATA_LOADED
     t, U, D = random_slice(t, U, D, timesteps)
     split_idx = int(np.floor(len(t) * trainper))
@@ -424,16 +431,15 @@ if __name__ == "__main__":
     
     if PARALLEL:
         #Set up things for multithreading
-        client = ipyparallel.Client(profile=p_profile)
+        client = ipp.Client(profile=p_profile)
         dview = client[:]
         dview.use_dill()
+        dview.block = True
         node_count = len(client.ids)
         print(f"Using multithreading; running on {node_count} engines.")
         dview.execute('from opt_then_test import *')
         dview.apply(_set_experiment,SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)
-        if SYSTEM=='softrobot':
-            dview.execute('BIG_ROBO_DATA_LOADED = load_robo(BIG_ROBO_DATA)')
-            dview.execute('SMALL_ROBO_DATA_LOADED = load_robo(SMALL_ROBO_DATA)')
+        
 
     #Find the data directory if none was given as an argument
     if results_directory is None:
@@ -474,6 +480,8 @@ if __name__ == "__main__":
         #Load robot data
         BIG_ROBO_DATA_LOADED = load_robo(BIG_ROBO_DATA)
         SMALL_ROBO_DATA_LOADED = load_robo(SMALL_ROBO_DATA)
+        if PARALLEL:
+            dview.push({'BIG_ROBO_DATA_LOADED':BIG_ROBO_DATA_LOADED,'SMALL_ROBO_DATA_LOADED':SMALL_ROBO_DATA_LOADED})
 
     # Bayesian hyper parameter optimization
     priorprms = loadprior(SYSTEM, param_names)
