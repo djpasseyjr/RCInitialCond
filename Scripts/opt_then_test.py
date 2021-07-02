@@ -13,6 +13,7 @@ Choose METHOD from ["standard", "augmented"]
 Additional options:
     "--test" - run with testing values.
     "--dashboard" - enable the sherpa dashboard. Not supported on Windows.
+    "--parallel=<profile name>" - use parallel processing, on all accessible nodes. Uses the controller with the given profile name. Requires ipyparallel and dill packages to be installed.
 """
 
 import sys
@@ -23,6 +24,7 @@ if __name__ == "__main__":
     #Extract the additional options from sys.argv
     options = {item for item in sys.argv[1:] if item[:2]=="--"}
     argv = [item for item in sys.argv if item not in options]
+    options = {item.split('=')[0]:'='.join(item.split('=')[1:]) for item in options}
     if len(sys.argv) < 5:
         print(__doc__)
         exit()
@@ -43,10 +45,10 @@ else:
     MAP_INITIAL = None
     PREDICTION_TYPE = None
     METHOD = None
-    options = set()
+    options = dict()
     argv = sys.argv
 EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
-    
+PARALLEL = ("--parallel" in options.keys())
 
 import sherpa
 import pickle as pkl
@@ -55,15 +57,22 @@ import rescomp as rc
 from scipy.io import loadmat
 from os import mkdir
 
+    
 ### Constants
 #Load from the relevant .py file
-if "--test" in options:
+if "--test" in options.keys():
     from parameters.ott_test import *
 else:
     from parameters.ott_params import *
     
 RES_DEFAULTS["map_initial"] = MAP_INITIAL
 
+if PARALLEL:
+    import ipyparallel as ipp
+    dview = None
+    node_count = 0
+    p_profile = options['--parallel']
+    
 ### Function definitions
 # These parameters are used as a prior for the bayesian optimization.
 # Decent parameters for each chaotic system are stored in rc.SYSTEMS
@@ -85,6 +94,15 @@ RES_DEFAULTS["map_initial"] = MAP_INITIAL
 # Basically change loadprior function to produce the parameters given above
 # in a format that sherpa can read
 
+def _set_experiment(*args):
+    """
+    A helper method to make it easier to set which experiment is being used if this file is imported.
+    """
+    global SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD, EXPERIMENT
+    SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD = args
+    EXPERIMENT = (SYSTEM, PREDICTION_TYPE, METHOD)
+    RES_DEFAULTS["map_initial"] = MAP_INITIAL
+    
 def loadprior(system, paramnames):
     """Load best parameters from random searches (Computed previously).
     Parameters not included are set to a default value found in the parameters files.
@@ -121,7 +139,7 @@ def loadprior(system, paramnames):
     return []
 
 def load_robo(filename):
-    """Load soft robot order"""
+    """Load soft robot data"""
     data = loadmat(DATADIR + filename)
     t = data['t'][0]
     q = data['q']
@@ -150,6 +168,12 @@ def random_slice(*args, axis=0):
 
 def robo_train_test_split(timesteps=25000, trainper=0.66, test="continue"):
     """Split robot data into training and test chunks """
+    global BIG_ROBO_DATA_LOADED, SMALL_ROBO_DATA_LOADED
+    
+    if 'BIG_ROBO_DATA_LOADED' not in dir():
+        BIG_ROBO_DATA_LOADED = load_robo(BIG_ROBO_DATA)
+        SMALL_ROBO_DATA_LOADED = load_robo(SMALL_ROBO_DATA)
+    
     t, U, D = BIG_ROBO_DATA_LOADED
     t, U, D = random_slice(t, U, D, timesteps)
     split_idx = int(np.floor(len(t) * trainper))
@@ -245,18 +269,22 @@ def make_initial(pred_type, rcomp, Uts):
         # Use the state space initial condition. (Reservoir will map it to a reservoir node condition)
         return {"u0": Uts[0]}
 
-def build_params(opt_prms, combine=False):
+def build_params(opt_prms, combine=False, system=None):
     """ Extract training method parameters and augment reservoir parameters with defaults.
         Parameters
         ----------
         opt_prms (dict): Dictionary of parameters from the optimizer
         combine (bool): default False; whether to return all parameters as a single dictionary
+        system (string): default None; the system to use. If None, takes the value of the global variable SYSTEM
     """
+    if system is None:
+        system = SYSTEM
+        
     if combine:
-        if SYSTEM == "softrobot":
-            return {**opt_prms, **RES_DEFAULTS, **ROBO_DEFAULTS}
+        if system == "softrobot":
+            return {**RES_DEFAULTS, **opt_prms, **ROBO_DEFAULTS}
         else:
-            return {**opt_prms, **RES_DEFAULTS}
+            return {**RES_DEFAULTS, **opt_prms}
             
     resprms = {}
     methodprms = {}
@@ -265,8 +293,8 @@ def build_params(opt_prms, combine=False):
             methodprms[k] = opt_prms[k]
         else:
             resprms[k] = opt_prms[k]
-    resprms = {**resprms, **RES_DEFAULTS}
-    if SYSTEM == "softrobot":
+    resprms = {**RES_DEFAULTS, **resprms}
+    if system == "softrobot":
         resprms = {**resprms, **ROBO_DEFAULTS} # Updates signal_dim and adds drive_dim
     return resprms, methodprms
 
@@ -303,11 +331,16 @@ def vpt(*args, **kwargs):
     return vptime
 
 def mean_vpt(*args, **kwargs):
-    """ Average valid prediction time across OPT_VPT_REPS repetitions """
-    tot_vpt = 0
-    for i in range(OPT_VPT_REPS):
-        tot_vpt += vpt(*args, **kwargs)
-    return tot_vpt/OPT_VPT_REPS
+    """ Average valid prediction time across OPT_VPT_REPS repetitions. Handles parallel processing. """
+    if PARALLEL:
+        loop_ct = int(np.ceil(OPT_VPT_REPS / node_count))
+        vpt_results = dview.apply_sync(lambda ct, *a, **k: [vpt(*a,**k) for _ in range(ct)], loop_ct, *args, **kwargs)
+        return np.sum(vpt_results) / (loop_ct * node_count)
+    else:
+        tot_vpt = 0
+        for i in range(OPT_VPT_REPS):
+            tot_vpt += vpt(*args, **kwargs)
+        return tot_vpt/OPT_VPT_REPS
 
 def get_vptime(system, ts, Uts, pre):
     """
@@ -323,33 +356,102 @@ def get_vptime(system, ts, Uts, pre):
         else:
             vptime = ts[idx-1] - ts[0]
         
-    #if "--test" in options:
+    #if "--test" in options.keys():
     #    print(vptime)
     return vptime
 
-def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6):
+def meanlyap(rcomp, pre, r0, ts, pert_size=1e-6, system=None):
     """ Average lyapunov exponent across LYAP_REPS repititions """
-    if SYSTEM == "softrobot":
+    if system is None:
+        system = SYSTEM
+    
+    if system == "softrobot":
         ts, D = ts
     lam = 0
     for i in range(LYAP_REPS):
         delta0 = np.random.randn(r0.shape[0]) * pert_size
-        if SYSTEM == "softrobot":
+        if system == "softrobot":
             predelta = rcomp.predict(ts, D, r0=r0+delta0)
         else:
             predelta = rcomp.predict(ts, r0=r0+delta0)
         i = rc.accduration(pre, predelta)
         lam += rc.lyapunov(ts[:i], pre[:i, :], predelta[:i, :], delta0)
     return lam / LYAP_REPS
+    
+def test_all(system, optimized_hyperprms):
+    """
+    Tests a set of optimized hyperparameters for continue and random predictions and derivative fit, as well as Lyapunov exponent.
+    Returns, in order:
+        Continue vptime
+        Random vptime
+        Lyapunov exponent
+        Continue deriv fit
+        Random deriv fit
+    The derivative fits will be None if system=='softrobot'.
+    """
+    results = [None]*5
+    
+    tr, Utr, ts, Uts = train_test_data(system, trainper=TRAINPER, test="continue")
+    resprms, methodprms = build_params(optimized_hyperprms, system=system)
+    rcomp = trained_rcomp(system, tr, Utr, resprms, methodprms)
+    
+    ## Continued Prediction
+    init_cond = make_initial("continue", rcomp, Uts)
+    pre = rcomp_prediction(system, rcomp, ts, init_cond)
+    # Compute error and deduce valid prediction time
+    vptime = get_vptime(system, ts, Uts, pre)
+    results[0] = vptime
+    
+    ## Continued Derivative fit
+    if system != "softrobot":
+        err = rc.system_fit_error(ts, pre, system)
+        trueerr = rc.system_fit_error(ts, Uts, system)
+        results[3] = (trueerr, err)
+
+    ## Random Prediction
+    tr, Utr, ts, Uts = train_test_data(system, trainper=TRAINPER, test="random")
+    init_cond = make_initial("random", rcomp, Uts)
+    pre = rcomp_prediction(system, rcomp, ts, init_cond)
+    vptime = get_vptime(system, ts, Uts, pre)
+    results[1] = vptime
+    
+    ## Random Derivative fit
+    if system != "softrobot":
+        err = rc.system_fit_error(ts, pre, system)
+        trueerr = rc.system_fit_error(ts, Uts, system)
+        results[4] = (trueerr, err)
+    
+    ## Lyapunov Exponent Estimation
+    if "r0" in init_cond.keys():
+        r0 = init_cond["r0"]
+    else:
+        if system == "softrobot":
+            r0 = rcomp.initial_condition(init_cond["u0"], ts[1][0,:])
+        else:
+            r0 = rcomp.initial_condition(init_cond["u0"])
+    results[2] = meanlyap(rcomp, pre, r0, ts, system=system)
+    return tuple(results)
 
 if __name__ == "__main__":
-    if "--test" in options:
+    if "--test" in options.keys():
         print("Running in test mode")
+    
+    if PARALLEL:
+        #Set up things for multithreading
+        client = ipp.Client(profile=p_profile)
+        dview = client[:]
+        dview.use_dill()
+        dview.block = True
+        node_count = len(client.ids)
+        print(f"Using multithreading; running on {node_count} engines.")
+        dview.execute('from opt_then_test import *')
+        dview.apply(_set_experiment,SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)
+        
 
     #Find the data directory if none was given as an argument
     if results_directory is None:
         results_directory = "_".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD,TIMESTAMP))
-        if "--test" in options:
+        if "--test" in options.keys():
             results_directory = "TEST-" + results_directory
         results_directory = DATADIR + SYSTEM + "/" + results_directory
     #Make sure the data directory exists
@@ -385,6 +487,8 @@ if __name__ == "__main__":
         #Load robot data
         BIG_ROBO_DATA_LOADED = load_robo(BIG_ROBO_DATA)
         SMALL_ROBO_DATA_LOADED = load_robo(SMALL_ROBO_DATA)
+        if PARALLEL:
+            dview.push({'BIG_ROBO_DATA_LOADED':BIG_ROBO_DATA_LOADED,'SMALL_ROBO_DATA_LOADED':SMALL_ROBO_DATA_LOADED})
 
     # Bayesian hyper parameter optimization
     priorprms = loadprior(SYSTEM, param_names)
@@ -409,8 +513,6 @@ if __name__ == "__main__":
         study.save(results_directory) # Need separate directories for each method etc
 
     ### Choose the best hyper parameters
-    # For some reason this function actually just returns a dictionary 
-    #   (rather than a pandas.DataFrame), which makes extracting the results easy.
     optimized_hyperprms = study.get_best_result()
     # Trim to only have the actual parameters
     optimized_hyperprms = {key:optimized_hyperprms[key] for key in param_names}
@@ -421,51 +523,35 @@ if __name__ == "__main__":
     results = {name:[] for name in ["continue", "random", "cont_deriv_fit", "rand_deriv_fit", "lyapunov"]}
     results["experiment"] = (SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD)
     results["opt_parameters"] = optimized_hyperprms
-    results["is_test"] = ("--test" in options)
+    results["is_test"] = ("--test" in options.keys())
 
-    for k in range(NSAVED_ORBITS):
-        tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="continue")
-        resprms, methodprms = build_params(optimized_hyperprms)
-        rcomp = trained_rcomp(SYSTEM, tr, Utr, resprms, methodprms)
+    if PARALLEL:
+        #Run test_all() in parallel
+        loop_ct = int(np.ceil(NSAVED_ORBITS / node_count))
+        test_results = dview.apply_sync(lambda s,p,c:[test_all(s,p) for _ in range(c)], SYSTEM, optimized_hyperprms, loop_ct)
+        #Collect the results
+        for rlist in test_results:
+            for cont_vpt, rand_vpt, lyap, cont_df, rand_df in rlist:
+                results["continue"].append(cont_vpt)
+                results["random"].append(rand_vpt)
+                results["lyapunov"].append(lyap)
+                if SYSTEM != 'softrobot':
+                    results["cont_deriv_fit"].append(cont_df)
+                    results["rand_deriv_fit"].append(rand_df)
+    else:
+        for k in range(NSAVED_ORBITS):
+            cont_vpt, rand_vpt, lyap, cont_df, rand_df = test_all(optimized_hyperprms)
+            results["continue"].append(cont_vpt)
+            results["random"].append(rand_vpt)
+            results["lyapunov"].append(lyap)
+            if SYSTEM != 'softrobot':
+                results["cont_deriv_fit"].append(cont_df)
+                results["rand_deriv_fit"].append(rand_df)
+            
 
-        ## Continued Prediction
-        init_cond = make_initial("continue", rcomp, Uts)
-        pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
-        # Compute error and deduce valid prediction time
-        vptime = get_vptime(SYSTEM, ts, Uts, pre)
-        results["continue"].append(vptime)
-        ## Continued Derivative fit
-        if SYSTEM != "softrobot":
-            err = rc.system_fit_error(ts, pre, SYSTEM)
-            trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
-            results["cont_deriv_fit"].append((trueerr, err))
-
-        ## Random Prediction
-        tr, Utr, ts, Uts = train_test_data(SYSTEM, trainper=TRAINPER, test="random")
-        init_cond = make_initial("random", rcomp, Uts)
-        pre = rcomp_prediction(SYSTEM, rcomp, ts, init_cond)
-        vptime = get_vptime(SYSTEM, ts, Uts, pre)
-        results["random"].append(vptime)
-        ## Random Derivative fit
-        if SYSTEM != "softrobot":
-            err = rc.system_fit_error(ts, pre, SYSTEM)
-            trueerr = rc.system_fit_error(ts, Uts, SYSTEM)
-            results["rand_deriv_fit"].append((trueerr, err))
-        
-        ## Lyapunov Exponent Estimation
-        if "r0" in init_cond.keys():
-            r0 = init_cond["r0"]
-        else:
-            if SYSTEM == "softrobot":
-                r0 = rcomp.initial_condition(init_cond["u0"], ts[1][0,:])
-            else:
-                r0 = rcomp.initial_condition(init_cond["u0"])
-        results["lyapunov"].append(meanlyap(rcomp, pre, r0, ts))
-
-    # Save results dictionary with a semi-unique name.
-    #   Could add a timestamp or something for stronger uniqueness
+    # Save results dictionary with a unique name.
     results_filename = "-".join((SYSTEM, MAP_INITIAL, PREDICTION_TYPE, METHOD, TIMESTAMP)) + ".pkl"
-    if "--test" in options:
+    if "--test" in options.keys():
         results_filename = "TEST-" + results_filename
     with open(results_directory + "/" + results_filename, 'wb') as file:
         pkl.dump(results, file)
