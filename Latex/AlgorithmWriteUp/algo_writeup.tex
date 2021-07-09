@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage[ruled,vlined]{algorithm2e}
 
 
@@ -10,16 +11,16 @@
 
 \subsection*{Overview}
 
-Given an $n_d$ dimensional orbit $\mathbf{u}(t)$ for $t_0 < t < T$, through the system that we will attempt to learn, a reservoir computer is trained by driving the reservoir with the input $\mathbf{u}(t)$, then projecting $\mathbf{u}(t)$ onto the resulting driven orbit of the reservoir nodes. 
+Given an $n_d$ dimensional orbit $\mathbf{u}(t)$ for $t_0 < t < T$, through a system that we will attempt to learn, a reservoir computer is trained by driving the reservoir with the input $\mathbf{u}(t)$, then projecting $\mathbf{u}(t)$ onto the resulting driven orbit of the reservoir nodes. 
 
-This occurs as follows. Given $\mathbf{u}(t)$, choose a $n_r$ dimensional reservoir initial condition $\mathbf{r}_0$ (It is useful if $\mathbf{r}_0 = \phi(\mathbf{u}(t_0))$ for some $\phi$) and solve the following initial value problem numerically:
+This occurs as follows. Given $\mathbf{u}(t)$, choose an $n_r$ dimensional reservoir initial condition $\mathbf{r}_0$. Standard practice selects $r_0$ randomly, but it is more useful if $\mathbf{r}_0 = \phi(\mathbf{u}(t_0))$ for some $\phi$. Then, we solve the following initial value problem numerically for solution values at the discrete time points $\{t_0, ..., tt_n\}$.
 
 \begin{equation} \label{untrained}
 \frac{d\mathbf{r}}{dt} = -\gamma\big[\mathbf{r}(t) + f\big(A\mathbf{r}(t) + \sigma W_\text{in} \mathbf{u}(t)\big)\big], \quad
 \mathbf{r}(t_0) = \mathbf{r}_0
 \end{equation}
 
-Here $\gamma > 0$ and $\sigma > 0$ are hyper parameters, $f$ is an activation function and $W_\text{in}$ is an $n_r \times n_d$ dimensional read-in matrix and  $A$ is an adjacency matrix that governs how the nodes in the reservoir interact. 
+Here $\gamma > 0$ and $\sigma > 0$ are hyper parameters, $f$ is an activation function $W_\text{in}$ is an $n_r \times n_d$ dimensional read-in matrix and  $A$ is an adjacency matrix that governs how the nodes in the reservoir interact. 
 
 Let $R$ represent the numerical solution to the IVP above and let $U$ represent $\mathbf{u}(t)$ sampled at corresponding time points. That is,
 \[
@@ -82,6 +83,56 @@ This is computed by solving the Tikanov regression problem
 where $\tau_1, ... \tau_k$ are random times in $(t_0, T)$. In fact, this might do better than our current window training method!
 
 However, your author believes the evolution of the reservoir computer state immediately after a new initial condition is important to include in $R$ and $U$. This is done with the intention of teaching $W_\text{out}$ to map the beginnings of orbits to the correct places rather than just sending the initial condition to the right place. Thus, we use windows over the training data in the current algorithm.
+
+\subsection*{Initial Condition Mappings}
+
+The initial condition mapping, $\phi$, is a key element of creating a correspondence between an orbit in the training signal space and an orbit in the reservoir space. By reservoir space, we mean the $n_r$ dimensional space that contains reservoir node trajectories.
+
+If we train a reservoir with standard techniques, it can continue the trajectory of the training orbit. Using the notation from before, this is because
+\[
+\mathbf{u}(T) \approx W_\text{out} \mathbf{r}(T)
+\]
+ which only occurs because $\mathbf{u}(T)$ and $\mathbf{r}(T)$ were included in the matrices used to solve for $W_\text{out}$. In other words, $W_\text{out}$ "learned" what reservoir initial state should correspond to $\mathbf{u}(T)$ because $W_\text{out}$ is the solution to a regularized least squares problem that creates a correspondence between  $\mathbf{u}(T)$ and $\mathbf{r}(T)$.
+
+However, what if we want to know the evolution of our unknown system from a new initial condition $\mathbf{u}^\star$ and we don't have any orbit leading up to $\mathbf{u}^\star$ to use to train our reservoir? 
+Our trained reservoir is an $n_r$ dimensional ODE that requires an initial condition in $\mathbb{R}^{n_r}$. 
+If we assume our reservoir has indeed "learned" the unknown system, there should be an $n_r$ dimensional initial condition $\mathbf{r}^\star$ such that the evolution of the reservoir nodes from this point corresponds to the evolution of the unknown system from $\mathbf{u}^\star$. 
+
+We know that $W_\text{out}$ sends reservoir node states to the training signal space, and here we are trying to do the inverse operation, send a point in the training signal space to the reservoir space. Thus, a natural choice for mapping $\mathbf{u}^\star$ to an appropriate $\mathbf{r}^\star$ is the pseudo inverse $W_\text{out}^\dagger$. However, in practice, the pseudo inverse does not work. This appears to be because it does not respect the bounds on reservoir node state magnitude that are imposed by the activation function. If $f(\mathbf{r}) = \tanh(\mathbf{r})$, reservoir node states will remain within $[-1,1]$ for all time (after a transient period where they travel to this interval). Thus, the reservoir node states that are used to create $W_\text{out}$ are all within this interval, and therefore, the learned dynamics of the unknown system are embedded in the reservoir space inside the hyper-cube $[-1,1]^{n_r}$. Thus, the important reservoir initial conditions are likely to all lie within this hyper-cube. However, in practice the pseudo inverse does not respect this region, and it's proposed initial condition vectors often end up in the transient region outside of this hyper cube. This leads to predictions that begin outside the of the area of interest, and then converge to the expected dynamics after a short time.
+
+From this experience we hypothesize that good initial condition mappings probably place the reservoir condition inside the constraining hyper cube.
+
+\subsubsection*{Inverting the Initial Condition Mapping}
+When we discussed using the pseudo inverse, we assumed that $W_\text{out}$ was already known and we used $W_\text{out}^\dagger$ to create an initial condition mapping. However this method did not work. Instead of building an initial condition mapping from $W_\text{out}$, we take a different approach. We chose an arbitrary mapping $\phi (\mathbf{u}) = \mathbf{r}$ from the training space to the reservoir space and train  $W_\text{out}$ to invert $\phi(\mathbf{u})$.  This is done by adding many initial condition correspondences $\{ \big( \phi (\mathbf{u}_i), \mathbf{u}_i \big)\}_{i=1}^{k}$ to the training data as explained previously. 
+
+When this process is complete, 
+\[W_\text{out} \phi(\mathbf{u}^\star) \approx \mathbf{u}^\star
+\]
+for any $\mathbf{u}^\star$.
+
+Because of this we can use $\mathbf{r}^\star = \phi(mathbf{u}^\star)$ as an initial condition for the trained reservoir and be confident that the beginning of the reservoir orbit will align with the beginning of the orbit though unknown system. 
+
+This occurs because when we generate a trained reservoir orbit $\hat{\mathbf{r}}(t)$ and apply $W_\text{out}$ to produce a prediction, 
+\[ 
+\hat{\mathbf{u}}(t) = W_\text{out} \hat{\mathbf{r}}(t)\]
+ we know that 
+ \[
+ \hat{\mathbf{u}}(t_0) = \mathbf{u}^\star \approx W_\text{out} \phi(\mathbf{u}^\star) =  W_\text{out} \hat{\mathbf{r}}^\star = W_\text{out} \hat{\mathbf{r}}(t_0)
+ \]
+ so the beginning of the orbits will correspond.
+
+ \subsubsection*{The Role of Transience}
+
+In untrained reservoir computers, the dynamical system always has at least one attracting fixed point. The location of this fixed point depends on the value of the driving signal. If the reservoir initial condition is not exactly this attracting fixed point, the orbit of the reservoir node will have an initial period of transience until it moves close enough to the attracting fixed point. After this transient period, the orbit of the node will simply follow the systems attracting fixed points as their location evolves in time.
+
+We can set our unknown initial condition $\mathbf{r}^\star$ to the location of an attracting fixed point corresponding to the input $\mathbf{u}(t)$. This creates a reservoir node orbit with no transience. That is, upon supplying the initial condition, reservoir nodes will follow the oscillations of the fixed point without any period of moving "in range". We use this method in our research and call it the "relax" method. This is because, in order to compute the location of the attracting fixed point, we give the untrained reservoir the constant input $\mathbf{u}^\star$ and allow the reservoir nodes to relax into a steady state at the attracting fixed point.
+
+However, preliminary experimentation showed that allowing some transience in the initial condition mapping was, in fact, helpful. To accommodate this, we use the function $\phi(\mathbf{u}) = f(W_\text{in} \mathbf{u})$. 
+Here $W_\text{in}$ sends the $n_d$ dimensional initial condition to the reservoir space, 
+$\mathbb{R}^{n_r}$, and 
+applying the activation function $f$ to the resulting $n_r$ dimensional vector constrains the initial condition to the aforementioned hyper cube. The result will likely not be a reservoir computer fixed point, but it will be close to one. This provides a little bit of transience to the beginning of a node's orbit. We call this method "activf" in our research.
+
+It remains to be seen which initial condition mapping is the best, but the fact that this method outperforms  the "relax" method suggests that transience may be useful.
 
 \subsection*{Algorithm Description}
 From initial condition $\mathbf{u}_0$, generate an array $(m \times n_d)$ of samples, $U$ from the system you want to learn.
