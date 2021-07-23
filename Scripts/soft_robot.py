@@ -146,7 +146,6 @@ if __name__=='__main__':
         }
 
         for i in range(num_iterations):
-
             res = rescomp.DrivenResComp(**initialization_params)
             print(time_train.shape)
             print(U_train.shape)
@@ -155,7 +154,6 @@ if __name__=='__main__':
 
             U_prediction = res.predict(time_predict, D_predict)
 
-            U_train_predict = res.predict(time_train, D_train, U_train[0,:])
             study.add_observation(
                 trial=trial,
                 iteration=i,
