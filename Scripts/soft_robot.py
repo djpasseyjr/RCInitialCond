@@ -123,29 +123,34 @@ if __name__=='__main__':
 
     algorithm = sherpa.algorithms.SuccessiveHalving()
 
-    study = sherpa.Study(parameters, algorithm, False)
+    study = sherpa.Study(parameters, algorithm, False, disable_dashboard=True)
 
     num_iterations = 50
 
     for trial in study:
 
         initialization_params = {
-            'sigma': parameters['sigma'],
-            'gamma': parameters['gamma'],
-            'ridge_alpha': parameters['ridge_alpha'],
-            'spect_rad': parameters['spect_rad'],
-            'mean_degree': parameters['mean_degree'],
-            'delta': parameters['delta'],
+            'sigma': trial.parameters['sigma'],
+            'gamma': trial.parameters['gamma'],
+            'ridge_alpha': trial.parameters['ridge_alpha'],
+            'spect_rad': trial.parameters['spect_rad'],
+            'mean_degree': trial.parameters['mean_degree'],
+            'delta': trial.parameters['delta'],
+            'signal_dim': 6,
+            'drive_dim': 6
         }
 
         training_params = {
-            'window': parameters['window'],
-            'overlap': parameters['overlap']
+            'window': trial.parameters['window'],
+            'overlap': trial.parameters['overlap']
         }
 
         for i in range(num_iterations):
 
             res = rescomp.DrivenResComp(**initialization_params)
+            print(time_train.shape)
+            print(U_train.shape)
+            print(D_train.shape)
             res.train(time_train, U_train, D_train, **training_params)
 
             U_prediction = res.predict(time_predict, D_predict)
