@@ -1,12 +1,13 @@
 import sherpa
 import pickle
 import numpy as np
-from scipy.io import loadmat
-from scipy import integrate
-from scipy import interpolate
 from os import mkdir
+from scipy.io import loadmat
 from matplotlib import pyplot as plt
 import rescomp
+import sys
+import params as p
+import os
 
 class ReservoirParams:
     def __init__(self, U):
@@ -98,18 +99,9 @@ def plot_performance(res):
     plt.show()
 
 if __name__=='__main__':
-    time, U, D = load_robot_data('/Users/taylorpool/work/webb/RCInitialCond/Data/bellows_arm_whitened.mat')
+    time, U, D = load_robot_data(p.robot_data_path)
     num_times = len(time)
     dt = np.mean(time[1:num_times] - time[:num_times-1])
-    train_indices = np.arange(len(time))<len(time)/2
-    time_train = time[train_indices]
-    U_train = U[train_indices, :]
-    D_train = D[train_indices, :]
-    predict_indices = ~train_indices
-    time_predict = time[predict_indices]
-    U_predict_answer = U[predict_indices, :]
-    D_predict = D[predict_indices, :]
-
     parameters = [
         sherpa.Continuous('sigma', [0.01, 5.0]),
         sherpa.Continuous('gamma', [0.1, 25]),
@@ -121,44 +113,18 @@ if __name__=='__main__':
         sherpa.Continuous('delta', [0.01, 5.0]),
     ]
 
-    algorithm = sherpa.algorithms.SuccessiveHalving()
+    algorithm = sherpa.algorithms.RandomSearch()
 
-    study = sherpa.Study(parameters, algorithm, False, disable_dashboard=True)
+    scheduler = sherpa.schedulers.SLURMScheduler(
+        submit_options="-N soft_robot_trial -P soft_robot_project -q soft_robot_queue",
+        environment=os.path.join(p.rc_cond_path, 'Slurm/environment_setup.sh')
+    )
 
-    num_iterations = 50
-
-    for trial in study:
-
-        initialization_params = {
-            'sigma': trial.parameters['sigma'],
-            'gamma': trial.parameters['gamma'],
-            'ridge_alpha': trial.parameters['ridge_alpha'],
-            'spect_rad': trial.parameters['spect_rad'],
-            'mean_degree': trial.parameters['mean_degree'],
-            'delta': trial.parameters['delta'],
-            'signal_dim': 6,
-            'drive_dim': 6
-        }
-
-        training_params = {
-            'window': trial.parameters['window'],
-            'overlap': trial.parameters['overlap']
-        }
-
-        for i in range(num_iterations):
-            res = rescomp.DrivenResComp(**initialization_params)
-            print(time_train.shape)
-            print(U_train.shape)
-            print(D_train.shape)
-            res.train(time_train, U_train, D_train, **training_params)
-
-            U_prediction = res.predict(time_predict, D_predict)
-
-            study.add_observation(
-                trial=trial,
-                iteration=i,
-                objective=valid_prediction_time(time_predict, U_predict_answer, U_prediction))
-        
-        study.finalize_trial()        
-    
-
+    results = sherpa.optimize(
+        parameters=parameters,
+        algorithm=algorithm,
+        lower_is_better=True,
+        scheduler=scheduler,
+        filename='run_trial.py',
+        disable_dashboard=True
+    )
