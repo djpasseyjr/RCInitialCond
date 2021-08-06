@@ -3,13 +3,15 @@
 if __name__!="__main__":
     #maybe should print an error message
     exit()
-
-#Process arguments. Information for that is stored in optimizer_args.py.
-from optimizer_args import get_parser
+    
+#######################
+# Parse arguments. Information for that is stored in script_args.py.
+#######################
+from script_args import get_parser
 parser = get_parser()
 #If invalid/insufficient arguments are given, execution stops here
 args = parser.parse_args()
-#print(args)
+
 
 import optimizer_controller as opt
 import optimizer_systems
@@ -19,6 +21,7 @@ import dill as pkl
 
 from os import mkdir
 from datetime import datetime
+
 
 if __name__=="__main__":
     #######################

@@ -69,17 +69,18 @@ class ResCompOptimizer:
         if parallel:
             self._initialize_parallelization(parallel_profile)
             
-    def run_optimization(self, opt_ntrials, vpt_reps, sherpa_dashboard=False):
+    def run_optimization(self, opt_ntrials, vpt_reps, max_stderr=None, sherpa_dashboard=False):
         """Runs the optimization process.
         
         Arguments:
             opt_ntrials (int): number of hyperparameter configurations to attempt
             vpt_reps (int): number of times to try each parameter set
+            max_stderr (float or None): if not none, ensures that the standard error for the mean is at most this value for each hyperparameter configuration.
             sherpa_dashboard (bool): whether to use the sherpa dashboard. Default false."""
         self._initialize_sherpa(opt_ntrials, sherpa_dashboard)
         for trial in self.study:
             try:
-                exp_vpt, stdev = self.run_single_vpt_test(vpt_reps, trial.parameters)
+                exp_vpt, stderr = self.run_single_vpt_test(vpt_reps, trial.parameters)
             except Exception as e:
                 #print relevant information for debugging
                 print("Trial parameters at error:", trial.parameters)
@@ -87,7 +88,7 @@ class ResCompOptimizer:
                 raise e
             self.study.add_observation(trial=trial,
                               objective=exp_vpt,
-                              context={'vpt_stdev':stdev})
+                              context={'vpt_stderr':stderr})
             self.study.finalize(trial)
             self.study.save(self.results_directory)
     
@@ -113,7 +114,7 @@ class ResCompOptimizer:
             parameters = self.get_best_result()
             
         if self.parallel:
-            results = self._run_n_times_parallel(test_ntrials, functions.test_all,
+            results, _ = self._run_n_times_parallel(test_ntrials, functions.test_all,
                         self.system, lyap_reps=lyap_reps, **self.res_params, **parameters)
             #Collapse into single list of outputs
             results = [item for sublist in results for item in sublist]
@@ -149,7 +150,7 @@ class ResCompOptimizer:
             parameters = self.get_best_result()
             
         if self.parallel:
-            results = self._run_n_times_parallel(n_orbits, functions.create_orbit,
+            results, _ = self._run_n_times_parallel(n_orbits, functions.create_orbit,
                         self.system, self.prediction_type, **self.res_params, **parameters)
             #Collapse into single list of outputs
             results = [item for sublist in results for item in sublist]
@@ -159,16 +160,30 @@ class ResCompOptimizer:
         
         return results
     
-    def run_single_vpt_test(self, vpt_reps, trial_params):
-        """Returns the mean and standard deviation of valid prediction time (VPT) resulting from the current and specified parameters"""
-        if self.parallel:
-            vpts = self._run_n_times_parallel(vpt_reps, functions.vpt,
-                        self.system, self.prediction_type, **self.res_params, **trial_params)
-        else:
-            vpts = self._run_n_times(vpt_reps, functions.vpt,
-                        self.system, self.prediction_type, **self.res_params, **trial_params)
+    def run_single_vpt_test(self, vpt_reps, trial_params, max_stderr=None):
+        """Returns the mean and standard error of valid prediction time (VPT) resulting from the current and specified parameters"""
         
-        return np.mean(vpts), np.std(vpts)
+        total_count = 0
+        vpts = []
+        while True:
+            if self.parallel:
+                new_vpts, ct = self._run_n_times_parallel(vpt_reps, functions.vpt,
+                            self.system, self.prediction_type, **self.res_params, **trial_params)
+            else:
+                new_vpts = self._run_n_times(vpt_reps, functions.vpt,
+                            self.system, self.prediction_type, **self.res_params, **trial_params)
+                ct = vpt_reps
+            
+            total_count += ct
+            vpts += new_vpts
+            if max_stderr is None:
+                break
+            else:
+                stderr = np.std(vpts)/np.sqrt(total_count)
+                if stderr < max_stderr:
+                    break
+        
+        return np.mean(vpts), np.std(vpts)/np.sqrt(total_count)
         
     def get_best_result(self):
         """Returns the best parameter set found in the previous optimization attempt."""
@@ -188,13 +203,13 @@ class ResCompOptimizer:
         
     def _run_n_times_parallel(self, n, func, *args, **kwargs):
         """
-        Calls func(*args, **kwargs) (at least) n times total between the ipyparallel nodes, and returns the result as a list.
+        Calls func(*args, **kwargs) (at least) n times total between the ipyparallel nodes, and returns the result as a list, as well as the total number of calls to the function.
         The function is called the same number of times on each node, and guaranteed to be called at least a total number of n times, although generally will be slightly more.
         """
         run_ct = int(np.ceil(n / self.node_count))
         result = self.dview.apply(lambda k, *args, **kwargs: [func(*args, **kwargs) for _ in range(k)],
                         run_ct, *args, **kwargs)
-        return result
+        return result, run_ct * self.node_count
         
     def _initialize_parallelization(self, parallel_profile):
         """Helper function to set up parallelization.
