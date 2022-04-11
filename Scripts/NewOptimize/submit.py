@@ -3,6 +3,7 @@ import itertools
 
 data_dir = "results/"
 ntasks = 16
+timelimit_hr = 72
 
 systems = [
     'lorenz',
@@ -42,11 +43,11 @@ for (system, (aug_type, icmap), pred_type, mean_deg, n) in itertools.product(sys
     args = ('new_optimize.py', system, aug_type, pred_type, icmap, str(mean_deg), str(n), data_dir)
     flags = (
         '-o', '{}/logfiles/slurm-%a.out'.format(data_dir),
-        '-t', '{}:00:00'.format(exp['time']),
+        '-t', '{}:00:00'.format(timelimit_hr),
         '--ntasks={}'.format(ntasks),
         '--nodes=1',
         '--mem-per-cpu=1G',
-        '-J', '-'.join(exp['name'])
+        '-J', '-'.join(args[1:-1])
     )
     
     #Submit the job
