@@ -2,58 +2,44 @@ import subprocess
 import itertools
 
 data_dir = "results/"
-n_samples = 500
 ntasks = 16
 
-experiments = [
-    # Lorenz
-    {
-        'name': ['lorenz', 'activ_f', 'augmented'],
-        'time': 72,
-    },
-    {
-        'name': ['lorenz', 'relax', 'standard'],
-        'time': 72,
-    },
-    {
-        'name': ['lorenz', 'random', 'standard'],
-        'time': 72,
-    },
-    # Rossler
-    {
-        'name': ['rossler', 'activ_f', 'augmented'],
-        'time': 72,
-    },
-    {
-        'name': ['rossler', 'relax', 'standard'],
-        'time': 72,
-    },
-    {
-        'name': ['rossler', 'random', 'standard'],
-        'time': 72,
-    },
-    # Thomas
-    {
-        'name': ['thomas', 'activ_f', 'augmented'],
-        'time': 72,
-    },
-    {
-        'name': ['thomas', 'relax', 'standard'],
-        'time': 72,
-    },
-    {
-        'name': ['thomas', 'random', 'standard'],
-        'time': 72,
-    },
+systems = [
+    'lorenz',
+    'rossler',
+    'thomas'
+]
+
+exp_types = [
+    ('augmented', 'activ_f'),
+    ('standard', 'activ_f'),
+    ('standard', 'random'),
+]
+
+pred_types = [
+    'continue',
+    'random',
+]
+
+mean_degrees = [
+    0.1,
+    1.0,
+    2.0
+]
+
+n_list = [
+    500,
+    1000,
+    2000
 ]
 
 
 subprocess.run(['mkdir', data_dir])
 subprocess.run(['mkdir', f"{data_dir}/logfiles"])
 
-for exp in experiments:
+for (system, (aug_type, icmap), pred_type, mean_deg, n) in itertools.product(systems, exp_types, pred_types, mean_degrees, n_list):
     #Get the arguments and flags
-    args = ('new_optimize.py', *exp['name'], str(n_samples), data_dir)
+    args = ('new_optimize.py', system, aug_type, pred_type, icmap, str(mean_deg), str(n), data_dir)
     flags = (
         '-o', '{}/logfiles/slurm-%a.out'.format(data_dir),
         '-t', '{}:00:00'.format(exp['time']),

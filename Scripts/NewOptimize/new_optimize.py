@@ -3,7 +3,7 @@ import numpy as np
 from rescomp import optimizer as rcopt
 import dill as pickle
 
-def main(system, aug_type, pred_type, init_cond, mean_degree, n, parallel_profile=None):
+def main(system, aug_type, pred_type, init_cond, mean_degree, n, data_dir, parallel_profile=None):
     """
     aug_type - augmented or standard
     pred_type - continue or random
@@ -15,6 +15,7 @@ def main(system, aug_type, pred_type, init_cond, mean_degree, n, parallel_profil
         system, init_cond, pred_type, aug_type,
         rm_params = ['mean_degree'],
         parallel_profile=parallel_profile,
+        results_directory=data_dir,
         # Rescomp parameters
         mean_degree = mean_degree,
         res_sz = n,
@@ -31,7 +32,8 @@ def main(system, aug_type, pred_type, init_cond, mean_degree, n, parallel_profil
     best_params = optimizer.get_best_result()
     
     # Save
-    with open(result_file, 'wb') as file:
+    result_filename = data_dir + '/{}-{}-{}-{}-d{}-n{}.pkl'.format(system, aug_type, pred_type, init_cond, mean_degree, n)
+    with open(result_filename, 'wb') as file:
         pickle.dump((
             (system, aug_type, pred_type, init_cond, mean_degree, n),
             best_params
