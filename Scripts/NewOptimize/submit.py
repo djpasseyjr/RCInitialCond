@@ -1,7 +1,7 @@
 import subprocess
 import itertools
 
-data_dir = "results/"
+data_dir = "results"
 ntasks = 16
 timelimit_hr = 72
 
@@ -42,7 +42,7 @@ for (system, (aug_type, icmap), pred_type, mean_deg, n) in itertools.product(sys
     #Get the arguments and flags
     args = ('new_optimize.py', system, aug_type, pred_type, icmap, str(mean_deg), str(n), data_dir)
     flags = (
-        '-o', '{}/logfiles/slurm-%a.out'.format(data_dir),
+        '-o', f'{data_dir}/logfiles/slurm-%a.out',
         '-t', '{}:00:00'.format(timelimit_hr),
         '--ntasks={}'.format(ntasks),
         '--nodes=1',
