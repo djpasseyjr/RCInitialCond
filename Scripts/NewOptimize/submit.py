@@ -1,5 +1,8 @@
 import subprocess
 import itertools
+from glob import glob
+import os
+import dill as pickle
 
 data_dir = "results"
 ntasks = 16
@@ -35,6 +38,7 @@ n_list = [
 ]
 
 def get_completed_jobs():
+    """Gets a set of all of the jobs that have completed"""
     finished_jobs = set()
     for filename in glob(os.path.join(data_dir, '*.pkl')):
         if filename.endswith('config.pkl'):
