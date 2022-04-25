@@ -40,7 +40,7 @@ if __name__=='__main__':
     results = optimizer.run_tests(ntrials, lyap_reps=1, parameters=params)
 
     # Save result file
-    result_filename = data_dir + '/{}-{}-{}-{}-d{}-n{}-vpts.pkl'.format(system, aug_type, pred_type, init_cond, mean_degree, n)
+    result_filename = data_dir + '/{}-{}-{}-{}-d{}-n{}-vpts.pkl'.format(system, aug_type, pred_type, icmap, mean_deg, n)
     with open(result_filename, 'wb') as file:
         pickle.dump((
             (system, aug_type, pred_type, icmap, mean_deg, n),
