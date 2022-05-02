@@ -2,6 +2,7 @@ import sys
 import numpy as np
 from rescomp import optimizer as rcopt
 import dill as pickle
+import os
 
 def main(system, aug_type, pred_type, init_cond, mean_degree, n, data_dir, progress_dir, parallel_profile=None):
     """
