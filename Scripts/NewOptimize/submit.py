@@ -52,6 +52,8 @@ def get_completed_jobs():
 
 subprocess.run(['mkdir', data_dir])
 subprocess.run(['mkdir', f"{data_dir}/logfiles"])
+subprocess.run(['mkdir', f"{data_dir}/progress"])
+progress_dir = os.path.join(data_dir, 'progress')
 
 finished_jobs = get_completed_jobs()
 for (system, (aug_type, icmap), pred_type, mean_deg, n) in itertools.product(systems, exp_types, pred_types, mean_degrees, n_list):
@@ -59,7 +61,7 @@ for (system, (aug_type, icmap), pred_type, mean_deg, n) in itertools.product(sys
     if (system, aug_type, pred_type, icmap, mean_deg, n) in finished_jobs:
         continue
     #Get the arguments and flags
-    args = ('new_optimize.py', system, aug_type, pred_type, icmap, str(mean_deg), str(n), data_dir)
+    args = ('new_optimize.py', system, aug_type, pred_type, icmap, str(mean_deg), str(n), data_dir, progress_dir)
     flags = (
         '-o', f'{data_dir}/logfiles/slurm-%a.out',
         '-t', '{}:00:00'.format(timelimit_hr),
