@@ -12,10 +12,25 @@ if __name__ == '__main__':
     subprocess.run(['mkdir', data_dir])
     subprocess.run(['mkdir', f"{data_dir}/logfiles"])
 
+    # Get the ones that have finished
+    finished_jobs = set()
+    for filename in glob(os.path.join(data_dir, '*.pkl')):
+        if filename.endswith('config.pkl'):
+            continue
+        with open(filename, 'rb') as file:
+            # Load and unpack
+            #print(filename)
+            experiment, result = pickle.load(file)
+            finished_jobs.add(experiment)
+
     # Load dataframe
     df = pd.read_pickle(sys.argv[1])
 
     for x in df.values:
+        # Check if that one's been finished
+        if (x[0], x[1], x[2], x[3], x[4], x[5]) in finished_jobs:
+            continue
+        
         args = (
             'vpt.py', 
             x[0], 
