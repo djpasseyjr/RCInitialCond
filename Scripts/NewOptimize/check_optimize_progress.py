@@ -3,6 +3,7 @@ from glob import glob
 import os
 import dill as pickle
 
+data_dir = "results"
 progress_dir = "results/progress"
 
 systems = [
@@ -38,7 +39,7 @@ n_list = [
 def get_completed_jobs():
     """Gets a set of all of the jobs that have completed"""
     finished_jobs = set()
-    for filename in glob(os.path.join(progress_dir, '*.pkl')):
+    for filename in glob(os.path.join(data_dir, '*.pkl')):
         if filename.endswith('config.pkl'):
             continue
         with open(filename, 'rb') as file:
