@@ -4,6 +4,8 @@ import rescomp as rc
 import pandas as pd
 import subprocess
 from glob import glob
+import os
+import dill as pickle
 
 if __name__ == '__main__':
     data_dir = "vpt_results"
