@@ -3,7 +3,7 @@ from glob import glob
 import os
 import dill as pickle
 
-data_dir = "results"
+progress_dir = "results/progress"
 
 systems = [
     'lorenz',
@@ -38,7 +38,7 @@ n_list = [
 def get_completed_jobs():
     """Gets a set of all of the jobs that have completed"""
     finished_jobs = set()
-    for filename in glob(os.path.join(data_dir, '*.pkl')):
+    for filename in glob(os.path.join(progress_dir, '*.pkl')):
         if filename.endswith('config.pkl'):
             continue
         with open(filename, 'rb') as file:
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         if (system, aug_type, pred_type, icmap, mean_deg, n) in finished_jobs:
             continue
         # Otherwise check if there's a progress file
-        progress_file = os.path.join(data_dir,'progress-{}-{}-{}-{}-d{}-n{}.pkl'.format(system, aug_type, pred_type, icmap, mean_deg, n))
+        progress_file = os.path.join(progress_dir,'progress-{}-{}-{}-{}-d{}-n{}.pkl'.format(system, aug_type, pred_type, icmap, mean_deg, n))
         
         print(f'{system} {aug_type} {pred_type} {icmap}: d={mean_deg}, n={n}')
         if os.path.exists(progress_file):
