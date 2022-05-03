@@ -3,7 +3,7 @@ import numpy as np
 import rescomp as rc
 import pandas as pd
 import subprocess
-import glob.glob as glob
+from glob import glob
 
 if __name__ == '__main__':
     data_dir = "vpt_results"
