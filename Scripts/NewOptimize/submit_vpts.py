@@ -56,7 +56,7 @@ if __name__ == '__main__':
             '--ntasks={}'.format(ntasks),
             '--nodes=1',
             '--mem-per-cpu=1G',
-            '-J', '-'.join(args[1:7])
+            '-J', 'results' + '-'.join(args[1:7])
         )
 
         subprocess.run(['sbatch', *flags, 'parallel_submit.sh', *args])
