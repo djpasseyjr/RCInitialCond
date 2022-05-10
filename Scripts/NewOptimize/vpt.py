@@ -36,6 +36,11 @@ if __name__=='__main__':
         parallel_profile=parallel_profile,
         results_directory=data_dir,
     )
+    # Modify the dt
+    if system == 'thomas':
+        optimizer.system.dt = 0.5
+    elif system == 'rossler':
+        optimizer.system.dt = 0.125
 
     results = optimizer.run_tests(ntrials, lyap_reps=1, parameters=params)
 

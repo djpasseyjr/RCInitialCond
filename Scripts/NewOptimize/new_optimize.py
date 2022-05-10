@@ -24,6 +24,12 @@ def main(system, aug_type, pred_type, init_cond, mean_degree, n, data_dir, progr
         ##
     )
     
+    # Modify the dt
+    if system == 'thomas':
+        optimizer.system.dt = 0.5
+    elif system == 'rossler':
+        optimizer.system.dt = 0.125
+    
     # Account for saved ones
     n_trials = 100 - len(optimizer.opt_observations)
     
