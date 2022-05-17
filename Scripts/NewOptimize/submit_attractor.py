@@ -51,7 +51,7 @@ if __name__ == '__main__':
         )
 
         flags = (
-            '-o', f'{data_dir}/logfiles/slurm-%a.out',
+            '-o', f'{data_dir}/logfiles/slurm-%j.out',
             '-t', '{}:00:00'.format(timelimit_hr),
             '--ntasks={}'.format(ntasks),
             '--nodes=1',

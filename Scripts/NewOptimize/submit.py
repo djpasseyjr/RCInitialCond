@@ -63,7 +63,7 @@ for (system, (aug_type, icmap), pred_type, mean_deg, n) in itertools.product(sys
     #Get the arguments and flags
     args = ('new_optimize.py', system, aug_type, pred_type, icmap, str(mean_deg), str(n), data_dir, progress_dir)
     flags = (
-        '-o', f'{data_dir}/logfiles/slurm-%a.out',
+        '-o', f'{data_dir}/logfiles/slurm-%j.out',
         '-t', '{}:00:00'.format(timelimit_hr),
         '--ntasks={}'.format(ntasks),
         '--nodes=1',
