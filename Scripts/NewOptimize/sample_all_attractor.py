@@ -126,4 +126,4 @@ if __name__ == "__main__":
     else:
         parallel=False
         parallel_profile=None
-    main(system, icmap, augtype, pred_type, params, min_vpt, n_rescomps, n_samples, filename, parallel=parallel, parallel_profile=parallel_profile, debug=True)
+    main(system, icmap, aug_type, pred_type, params, min_vpt, n_rescomps, n_samples, filename, parallel=parallel, parallel_profile=parallel_profile, debug=True)
