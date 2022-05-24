@@ -23,7 +23,7 @@ if __name__ == '__main__':
         with open(filename, 'rb') as file:
             # Load and unpack
             #print(filename)
-            experiment, result = pickle.load(file)
+            experiment = pickle.load(file)['experiment']
             finished_jobs.add(experiment)
 
     # Load dataframe
