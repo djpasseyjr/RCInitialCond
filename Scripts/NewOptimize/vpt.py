@@ -38,7 +38,7 @@ if __name__=='__main__':
     )
     # Modify the dt
     if system == 'thomas':
-        optimizer.system.dt = 0.5
+        optimizer.system.dt = 1.0
     elif system == 'rossler':
         optimizer.system.dt = 0.125
 

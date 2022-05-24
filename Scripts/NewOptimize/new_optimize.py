@@ -26,7 +26,7 @@ def main(system, aug_type, pred_type, init_cond, mean_degree, n, data_dir, progr
     
     # Modify the dt
     if system == 'thomas':
-        optimizer.system.dt = 0.5
+        optimizer.system.dt = 1.
     elif system == 'rossler':
         optimizer.system.dt = 0.125
     

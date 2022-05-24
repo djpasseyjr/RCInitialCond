@@ -53,7 +53,7 @@ def main(sysname, icmap, augtype, pred_type, rcparams, min_vpt, n_rescomps, n_sa
     optimizer = rcopt.ResCompOptimizer(sysname, icmap, "random", augtype)
     # Do modifications to system parameters
     if sysname == 'thomas':
-        optimizer.system.dt = 0.5
+        optimizer.system.dt = 1.0
     elif sysname == 'rossler':
         optimizer.system.dt = 0.125
     

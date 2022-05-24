@@ -10,7 +10,7 @@ import dill as pickle
 if __name__ == '__main__':
     data_dir = "vpt_results"
     ntasks = 16
-    timelimit_hr = 72
+    timelimit_hr = 120
 
     subprocess.run(['mkdir', data_dir])
     subprocess.run(['mkdir', f"{data_dir}/logfiles"])
