@@ -87,7 +87,7 @@ def main(sysname, icmap, augtype, pred_type, rcparams, min_vpt, n_rescomps, n_sa
     
     with open(filename, 'wb') as file:
         pickle.dump({'results':results,
-            'experiment':(system, augtype, pred_type, icmap),
+            'experiment':(system, augtype, pred_type, icmap, mean_deg, n),
             'params':rcparams},
             file)
 
