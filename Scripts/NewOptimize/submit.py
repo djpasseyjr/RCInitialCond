@@ -67,7 +67,7 @@ for (system, (aug_type, icmap), pred_type, mean_deg, n) in itertools.product(sys
         '-t', '{}:00:00'.format(timelimit_hr),
         '--ntasks={}'.format(ntasks),
         '--nodes=1',
-        '--mem-per-cpu=1G',
+        '--mem-per-cpu=300M',
         '-J', '-'.join(args[1:-1])
     )
     

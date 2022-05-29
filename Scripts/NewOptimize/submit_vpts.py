@@ -55,7 +55,7 @@ if __name__ == '__main__':
             '-t', '{}:00:00'.format(timelimit_hr),
             '--ntasks={}'.format(ntasks),
             '--nodes=1',
-            '--mem-per-cpu=1G',
+            '--mem-per-cpu=400M',
             '-J', 'results' + '-'.join(args[1:7])
         )
 
