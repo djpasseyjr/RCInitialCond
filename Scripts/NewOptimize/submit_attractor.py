@@ -23,8 +23,12 @@ if __name__ == '__main__':
         with open(filename, 'rb') as file:
             # Load and unpack
             #print(filename)
-            experiment = pickle.load(file)['experiment']
+            data = pickle.load(file)
+            experiment = data['experiment']
+            params = data['params']
+            # do this because I was accidentally inconsistent initially
             finished_jobs.add(experiment)
+            finished_jobs.add(experiment + (params['mean_degree'], params['res_sz']))
 
     # Load dataframe
     df = pd.read_pickle(sys.argv[1])

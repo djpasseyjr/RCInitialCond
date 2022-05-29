@@ -4,7 +4,7 @@ from rescomp import optimizer as rcopt
 import pickle
 
 data_dir = 'vpt_results'
-ntrials = 8092
+ntrials = 8096
 
 if __name__=='__main__':
     # system     is_aug pred_type   ic_map  mean_degree     n      gamma   ridge_alpha     sigma  spect_rad  overlap window
