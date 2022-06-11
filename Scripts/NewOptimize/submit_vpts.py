@@ -9,10 +9,12 @@ import dill as pickle
 
 if __name__ == '__main__':
     data_dir = "vpt_results"
+    progress_dir = os.path.join(data_dir, 'progress')
     ntasks = 16
     timelimit_hr = 120
 
     subprocess.run(['mkdir', data_dir])
+    subprocess.run(['mkdir', progress_dir])
     subprocess.run(['mkdir', f"{data_dir}/logfiles"])
 
     # Get the ones that have finished

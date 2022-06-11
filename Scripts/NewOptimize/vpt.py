@@ -2,9 +2,32 @@ import sys
 import rescomp as rc
 from rescomp import optimizer as rcopt
 import pickle
+import os
 
 data_dir = 'vpt_results'
+progress_dir = os.path.join(data_dir, 'progress')
 ntrials = 8096
+# break it into pieces that are still divisible by 16
+chunk_size = 8096 // 23
+
+def merge_dicts(first, second):
+    """
+    Merges two dictionaries of lists.
+    """
+    if first is None:
+        return second
+    if second is None:
+        return first
+        
+    # Make copies of items in first
+    result = {k:v.copy() for k,v in first.items()}
+    # Put second in, appending if needed
+    for k,v in second.items():
+        if k in first.keys():
+            result[k] += v
+        else:
+            result[k] = v.copy()
+    return result
 
 if __name__=='__main__':
     # system     is_aug pred_type   ic_map  mean_degree     n      gamma   ridge_alpha     sigma  spect_rad  overlap window
@@ -41,9 +64,29 @@ if __name__=='__main__':
         optimizer.system.dt = 1.0
     elif system == 'rossler':
         optimizer.system.dt = 0.125
-
-    results = optimizer.run_tests(ntrials, lyap_reps=1, parameters=params)
-
+        
+    # Get progress so far, if any
+    progress_filename = os.path.join(progress_dir, 'progress-{}-{}-{}-{}-d{}-n{}-vpts.pkl'.format(system, aug_type, pred_type, icmap, mean_deg, n))
+    if os.path.exists(progress_filename):
+        try:
+            with open(progress_filename, 'rb') as file:
+                results, n_completed = pickle.load(file)
+        except Exception as e:
+            print(f"Error reading progress file: {type(e).__class__}: {e}")
+            results = None
+            n_completed = 0
+    else:
+        results = None
+        n_completed = 0
+    
+    while n_completed < ntrials:
+        next_results = optimizer.run_tests(chunk_size, lyap_reps=1, parameters=params)
+        n_completed += chunk_size
+        results = merge_dicts(results, next_results)
+        # Save progress
+        with open(progress_filename, 'wb') as file:
+            pickle.dump((results, n_completed), file)
+        
     # Save result file
     result_filename = data_dir + '/{}-{}-{}-{}-d{}-n{}-vpts.pkl'.format(system, aug_type, pred_type, icmap, mean_deg, n)
     with open(result_filename, 'wb') as file:
