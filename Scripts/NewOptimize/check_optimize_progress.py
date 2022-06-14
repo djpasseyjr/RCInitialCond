@@ -66,4 +66,19 @@ if __name__ == "__main__":
         else:
             print("\tNo progress found")
         print()
-        
+    
+    # The final result ones
+    print("="*20)
+    print("Final result progress:")
+    print("="*20)
+    print()
+    for filename in glob(os.path.join('results', 'progress', '*.pkl')):
+        if filename.endswith('config.pkl'):
+            continue
+        with open(filename, 'rb') as file:
+            # Load and unpack
+            #print(filename)
+            results, n_completed = pickle.load(file)
+            print(f"{filename.split('/')[-1]:<40}: {n_completed:<4}/8092")
+            print()
+    
