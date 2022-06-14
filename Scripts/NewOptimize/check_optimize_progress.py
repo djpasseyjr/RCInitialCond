@@ -72,7 +72,7 @@ if __name__ == "__main__":
     print("Final result progress:")
     print("="*20)
     print()
-    for filename in glob(os.path.join('results', 'progress', '*.pkl')):
+    for filename in glob(os.path.join('vpt_results', 'progress', '*.pkl')):
         if filename.endswith('config.pkl'):
             continue
         with open(filename, 'rb') as file:
