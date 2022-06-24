@@ -27,6 +27,11 @@ def sample_from_attractor(rescomp, system, n, parallel=False, parallel_profile=N
         dview.use_dill()
         dview.block = True
         node_count = len(client.ids)
+        if system.name == 'thomas':
+            # cursed stuff to make the drawing of points uniform on both halves of the attractor
+            dview.execute('import rescomp as rc')
+            dview.execute("rc.chaosode.SYSTEMS['thomas']['domain_shift'] = [ -4., -4., -4. ]")
+            dview.execute("rc.chaosode.SYSTEMS['thomas']['domain_scale'] = [ 8., 8., 8. ]")
         dview.execute('import numpy as np')
         dview.execute('from rescomp import optimizer as rcopt')
         
@@ -54,6 +59,8 @@ def main(sysname, icmap, augtype, pred_type, rcparams, min_vpt, n_rescomps, n_sa
     # Do modifications to system parameters
     if sysname == 'thomas':
         optimizer.system.dt = 1.0
+        rc.chaosode.SYSTEMS['thomas']['domain_shift'] = [ -4., -4., -4. ]
+        rc.chaosode.SYSTEMS['thomas']['domain_scale'] = [ 8., 8., 8. ]
     elif sysname == 'rossler':
         optimizer.system.dt = 0.125
     
