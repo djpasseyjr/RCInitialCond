@@ -59,11 +59,14 @@ if __name__=='__main__':
         parallel_profile=parallel_profile,
         results_directory=data_dir,
     )
-    # Modify the dt
-    if system == 'thomas':
+    # Modify the dt and test time
+    if system == 'lorenz':
+        optimizer.system.test_time = 12.0
+    elif system == 'thomas':
         optimizer.system.dt = 1.0
     elif system == 'rossler':
         optimizer.system.dt = 0.125
+        optimizer.system.test_time = 200.0
         
     # Get progress so far, if any
     progress_filename = os.path.join(progress_dir, 'progress-{}-{}-{}-{}-d{}-n{}-vpts.pkl'.format(system, aug_type, pred_type, icmap, mean_deg, n))
