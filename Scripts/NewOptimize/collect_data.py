@@ -30,7 +30,7 @@ def main(source_folder, dest_filename):
             }
 
             #print(params)
-            df = df.append(exp_dictionary, ignore_index=True)
+            df = df.concat(exp_dictionary, ignore_index=True)
     
     # Print DataFrame
     print(df)
