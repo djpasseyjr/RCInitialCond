@@ -29,4 +29,4 @@ srun ~/.local/bin/ipengine --profile=${profile} --location=$(hostname) --log-to-
 sleep 30
 
 echo "Launching job"
-"$@" ${profile}
+python -m rescomp.opt_then_test $SYSTEM $MAP_INITIAL $PREDICTION_TYPE $METHOD $LOGDIR --parallel  --profile ${profile} --opt-ntrials 250 --test-lyap-reps 1 --ode drive_rc --algorithm population

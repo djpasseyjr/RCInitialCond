@@ -6,9 +6,10 @@
 
 SYSTEM=$1
 MAP_INITIAL=$2
-PREDICTION_TYPE=$3
-METHOD=$4
-LOGDIR=$5
+AUGTYPE=$3
+MIN_VPT=$4
+N_SAMPLES=$5
+FILENAME=$6
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn.
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
@@ -29,4 +30,5 @@ srun ~/.local/bin/ipengine --profile=${profile} --location=$(hostname) --log-to-
 sleep 30
 
 echo "Launching job"
-"$@" ${profile}
+
+python sample_all_attractor.py $SYSTEM $MAP_INITIAL $AUGTYPE $MIN_VPT $N_SAMPLES $FILENAME ${profile}
