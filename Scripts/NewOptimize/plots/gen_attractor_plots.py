@@ -81,8 +81,8 @@ def make_attractor_plot(dest_name, experiment, samples, max_vpt, cmap='plasma', 
     vpts = samples[:,-1]
     
     # get the colors
-    #norm = colors.SymLogNorm(vmin=0, vmax=max_vpt, linthresh=1e-3, linscale=1e-1, base=10)
-    norm = colors.Normalize(vmin=0, vmax=max_vpt)
+    norm = colors.SymLogNorm(vmin=0, vmax=max_vpt, linthresh=1e-3, linscale=1e-1, base=10)
+    #norm = colors.Normalize(vmin=0, vmax=max_vpt)
     c = plt.get_cmap(cmap)(norm(vpts))
     
     fig = plt.figure(figsize=figsize)

@@ -63,9 +63,10 @@ if __name__=='__main__':
     if system == 'lorenz':
         optimizer.system.test_time = 12.0
     elif system == 'thomas':
-        optimizer.system.dt = 1.0
+        #optimizer.system.dt = 1.0
+        pass
     elif system == 'rossler':
-        optimizer.system.dt = 0.125
+        #optimizer.system.dt = 0.125
         optimizer.system.test_time = 200.0
         
     # Get progress so far, if any
