@@ -79,6 +79,7 @@ if __name__ == "__main__":
             # Load and unpack
             #print(filename)
             results, n_completed = pickle.load(file)
-            print(f"{filename.split('/')[-1]:<40}: {n_completed:<4}/8092")
-            print()
+            if n_completed < 8096:
+                print(f"{filename.split('/')[-1]:<40}: {n_completed:<4}/8096")
+                print()
     
