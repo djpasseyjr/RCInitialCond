@@ -59,6 +59,5 @@ if __name__=="__main__":
         )
         
         #Submit the job
-        print('sbatch', *flags, 'parallel_submit.sh', *args)
-        #subprocess.run(['sbatch', *flags, 'parallel_submit.sh', *args])
+        subprocess.run(['sbatch', *flags, 'parallel_submit.sh', *args])
         
