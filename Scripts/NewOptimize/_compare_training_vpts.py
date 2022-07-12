@@ -15,7 +15,7 @@ def main(opt_params, parallel_profile):
     # Do the vpt stuff
     # Set up and run the jobs
     optimizer = rcopt.ResCompOptimizer(
-        system, icmap, pred_type, aug_type,
+        system, init_cond, pred_type, aug_type,
         parallel_profile=parallel_profile,
         results_directory=data_dir,
     )
@@ -55,7 +55,7 @@ def main(opt_params, parallel_profile):
     result_filename = os.path.join(data_dir, '{}-{}-{}-{}-d{}-n{}-tr{}-vpts.pkl'.format(system, aug_type, pred_type, init_cond, mean_degree, n, train_time))
     with open(result_filename, 'wb') as file:
         pickle.dump((
-            (system, aug_type, pred_type, icmap, mean_deg, n, train_time),
+            (system, aug_type, pred_type, init_cond, mean_degree, n, train_time),
             results
         ), file)
     
