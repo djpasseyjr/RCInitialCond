@@ -27,7 +27,7 @@ if __name__ == "__main__":
         
         if not os.path.exists(result_filename):
             # Submit the job
-            args = ('_compare_training.py', param_filename)
+            args = ('_compare_training_vpts.py', param_filename)
             
             flags = (
                 '-o', f'{log_dir}/slurm-%j.out',
