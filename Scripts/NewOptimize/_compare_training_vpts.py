@@ -5,12 +5,31 @@ from rescomp import optimizer as rcopt
 
 from submit_ct_vpts import data_dir, progress_dir
 
+def merge_dicts(first, second):
+    """
+    Merges two dictionaries of lists.
+    """
+    if first is None:
+        return second
+    if second is None:
+        return first
+        
+    # Make copies of items in first
+    result = {k:v.copy() for k,v in first.items()}
+    # Put second in, appending if needed
+    for k,v in second.items():
+        if k in first.keys():
+            result[k] += v
+        else:
+            result[k] = v.copy()
+    return result
+    
 def main(opt_params, parallel_profile):
     ntrials = 4096
     chunk_size = 4096 // 8
 
     # Unpack parameters
-    (system, aug_type, pred_type, init_cond, mean_degree, n, train_time), best_params = opt_params
+    (system, aug_type, pred_type, init_cond, mean_degree, n, train_time), rc_params = opt_params
     
     # Do the vpt stuff
     # Set up and run the jobs
@@ -44,7 +63,7 @@ def main(opt_params, parallel_profile):
         n_completed = 0
     
     while n_completed < ntrials:
-        next_results = optimizer.run_tests(chunk_size, lyap_reps=1, parameters=params)
+        next_results = optimizer.run_tests(chunk_size, lyap_reps=1, parameters=rc_params)
         n_completed += chunk_size
         results = merge_dicts(results, next_results)
         # Save progress
