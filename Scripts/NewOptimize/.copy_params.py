@@ -24,7 +24,7 @@ if __name__=="__main__":
     
     for (system, tr_time), augtype, predtype in itertools.product(systems, augtypes, predtypes):
         orig_filename = template_orig.format(system, augtype.format(predtype))
-        new_filename = template_.format(system, augtype.format(predtype), tr_time)
+        new_filename = template_new.format(system, augtype.format(predtype), tr_time)
         
         with open(orig_filename, 'rb') as file:
             experiment, params = pickle.load(file)
