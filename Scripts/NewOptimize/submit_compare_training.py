@@ -1,4 +1,5 @@
 
+import dill as pickle
 import subprocess
 import itertools
 import os
