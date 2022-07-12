@@ -14,7 +14,7 @@ if __name__=="__main__":
     experiments = list(itertools.product(
         [
         *itertools.product(['lorenz'],[1.0, 3.0, 6.6, 10.0, 30.0]),
-        *itertools.product(['thomas'],[10.0, 30.0, 100.0, 1000.0]),
+        *itertools.product(['thomas'],[10.0, 30.0, 100.0, 660.0, 1000.0]),
         *itertools.product(['rossler'],[5.0, 15.0, 50.0, 165.0, 300.0]),
         ],
         [
