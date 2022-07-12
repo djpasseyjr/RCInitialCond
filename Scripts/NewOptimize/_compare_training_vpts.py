@@ -1,5 +1,7 @@
 import sys
 import dill as pickle
+import os
+from rescomp import optimizer as rcopt
 
 from submit_ct_vpts import data_dir, progress_dir
 
