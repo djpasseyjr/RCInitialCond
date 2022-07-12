@@ -30,6 +30,6 @@ if __name__=="__main__":
             experiment, params = pickle.load(file)
         with open(new_filename, 'wb') as file:
             pickle.dump(
-                ((*experiment, tr_time), params)
+                ((*experiment, tr_time), params),
                 file
             )
