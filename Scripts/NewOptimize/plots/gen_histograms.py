@@ -14,13 +14,23 @@ def get_name(filepath):
 def get_system(name):
     return name.split('-')[0]
 
-def gen_plot(ax, data_dict, is_rand, max_vpt, colors, n_bins=20, **plot_params):
+def gen_plot(ax, data_dict, is_rand, max_vpt, colors, n_bins=20, label_name=True, label_mean=True, **plot_params):
     data = {key:data_dict[key][is_rand][is_rand] for key in data_dict if is_rand in data_dict[key].keys()}
     bins = np.linspace(0, max_vpt, n_bins)
     
     for key in data:
-        ax.hist(data[key], bins=bins, color=colors[key], edgecolor=colors[key], label='-'.join(key), **plot_params)
         mean = np.mean(data[key])
+        
+        # Generate the label
+        label = ''
+        if label_name:
+            label = '-'.join(key)
+        if label_mean:
+            if len(label) > 0:
+                label += '; '
+            label += r"$\mu = {:.2f}$".format(mean)
+        
+        ax.hist(data[key], bins=bins, color=colors[key], edgecolor=colors[key], label=label, **plot_params)
         ax.axvline(x=mean, color=colors[key],linestyle="--",alpha=0.8)
     
 
@@ -80,7 +90,8 @@ def main(verbose=False, extension='pdf', **plot_params):
         gen_plot(ax[0], data[key], 'continue', max_vpt, colors, **plot_params)
         ax[0].legend(loc='upper right')
         ax[1].set_title('Random predictions')
-        gen_plot(ax[1], data[key], 'random', max_vpt, colors, **plot_params)
+        gen_plot(ax[1], data[key], 'random', max_vpt, colors, label_name=False, **plot_params)
+        ax[1].legend(loc='upper right')
         fig.savefig(dest_file)
         plt.close(fig)
         
