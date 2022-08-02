@@ -1,5 +1,6 @@
 
 from glob import glob
+import itertools
 
 def get_name(filepath):
     name = filepath.replace('\\','/').split('/')[-1][:-4]
@@ -8,14 +9,15 @@ def get_name(filepath):
     return name
     
 def get_dir(filepath):
-    return filepath.replace('\\','/').split('/')[-2]
+    return '/'.join(filepath.replace('\\','/').split('/')[:-1])
 
 def get_system(name):
     return name.split('-')[0]
 
 def main(filename):
     with open(filename, 'w') as file:
-        filenames = list(map(lambda x:x.replace('\\','/'), glob('histograms/*.png')))
+        filenames = list(map(lambda x:x.replace('\\','/'), 
+                itertools.chain(glob('histograms/*.png'), glob('histograms/traintime/*.png'))))
         
         names = [get_name(x) for x in filenames]
         dirs = [get_dir(x) for x in filenames]
@@ -35,7 +37,7 @@ def main(filename):
             
             if cdir == 'attractor':
                 size = 'width="400" height="320"'
-            elif cdir == 'histograms':
+            elif cdir.startswith('histograms'):
                 size = 'width="400" height="530"'
             else:
                 size = 'width="500" height="400"'
