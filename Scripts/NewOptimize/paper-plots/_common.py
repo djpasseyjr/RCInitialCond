@@ -4,6 +4,15 @@ Defines some common constants and utilities between the files
 import os
 import itertools
 
+# Set some matplotlib properties
+from matplotlib import pyplot as plt
+plt.rcParams.update({
+    'text.usetex': True,
+    "font.family": "serif",
+    'font.sans-serif': ['Computer Modern Roman'],
+    'font.serif': ['Computer Modern Roman'],
+})
+
 # Some structs to hold data more cleanly
 class TrainMethod:
     def __init__(self, name, key, window_type, icm_type):

@@ -1,17 +1,19 @@
 from matplotlib import pyplot as plt
 import argparse
 import os
+import subprocess
 
-PLOT_ITEMS = [
-    ('save_name', None, list(), dict()),
-]
+def empty_func():
+    pass
 
 def save_figs(filename, _folder, _extension, gen_func, *args, **kwargs):
     print('{:.<30} '.format(filename), end='')
     # Generate the plots
-    plt.ion()
+    # We do janky stuff to make plt.show() not do stuff; plt.ion/ioff also works but tended to mess up figure sizes
+    _show = plt.show
+    plt.show = empty_func
     gen_func(*args, **kwargs)
-    plt.ioff()
+    plt.show = _show
     
     full_filename = os.path.join(_folder, filename)
 
@@ -21,11 +23,11 @@ def save_figs(filename, _folder, _extension, gen_func, *args, **kwargs):
     if len(fignums) == 0:
         raise ValueError("Function {} did not generate any plots!".format(gen_func.__name__))
     elif len(fignums) == 1:
-        plt.savefig(full_filename, format=_extension)
+        plt.savefig(full_filename + '.' + _extension, format=_extension, bbox_inches='tight')
     else:
         for n,i in enumerate(fignums):
             fig = plt.figure(i)
-            plt.savefig(full_filename+'_'+str(n), format=_extension)
+            plt.savefig(full_filename+'_'+str(n) + '.' + _extension, format=_extension, bbox_inches='tight')
     plt.close('all')
     print('done')
     
@@ -42,11 +44,24 @@ if __name__ == "__main__":
                     help='Create plots as .png files (faster but lower quality)')
     args = parser.parse_args()
     
+    ##### Load plot data ############################################################
+    
+    import _vpts
+    import _icmap_example
+
+    PLOT_ITEMS = [
+        ('vpts', _vpts.create_vpt_plots, list(), dict()),
+        ('icmap-example', _icmap_example.create_icmap_example_plot, list(), dict()),
+    ]
+
+    
+    #################################################################################
+    
     if args.draft:
-        extension = '.png'
+        extension = 'png'
         folder = 'figures-draft'
     else:
-        extension = '.pdf'
+        extension = 'pdf'
         folder = 'figures'
     
     os.makedirs(folder, exist_ok=True)
