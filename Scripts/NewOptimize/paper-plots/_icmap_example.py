@@ -45,9 +45,7 @@ def create_icmap_example_plot(seed=73323):
         ax_sys.plot(tr_signal[train_split:,0], tr_signal[train_split:,1], tr_signal[train_split:,2], '--', color=train_color)
         ax_sys.plot(tr_signal[0,0], tr_signal[0,1], tr_signal[0,2], 'k*', markersize=12.)
         
-        ax_sys.set_xticks(np.linspace(-20,20,5), labels=[])
-        ax_sys.set_yticks(np.linspace(-25,30,5), labels=[])
-        ax_sys.set_zticks(np.linspace(5,45,5), labels=[])
+        clear_3d_axis_labels(ax_sys)
         #ax_sys.axis('off')
         
         # Plot reservoir states

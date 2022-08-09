@@ -3,6 +3,7 @@ Defines some common constants and utilities between the files
 """
 import os
 import itertools
+import numpy as np
 
 # Set some matplotlib properties
 from matplotlib import pyplot as plt
@@ -12,6 +13,21 @@ plt.rcParams.update({
     'font.sans-serif': ['Computer Modern Roman'],
     'font.serif': ['Computer Modern Roman'],
 })
+
+# Helper methods for plots
+def clear_3d_axis_labels(ax):
+    """
+    Cleans up 3d axis plots for when the bounds don't matter
+    """
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    zlim = ax.get_zlim()
+    ax.set_xticks(np.linspace(*xlim,5), labels=[])
+    ax.set_yticks(np.linspace(*ylim,5), labels=[])
+    ax.set_zticks(np.linspace(*zlim,5), labels=[])
+    #ax.set_xlim(*xlim)
+    #ax.set_ylim(*ylim)
+    #ax.set_zlim(*zlim)
 
 # Some structs to hold data more cleanly
 class TrainMethod:
@@ -64,7 +80,7 @@ def hyperparams_file(system, train_method, pred_type, n, c):
     """
     path = '../results'
     name = '{}-{}-{}-{}-d{}-n{}.pkl'.format(system, train_method.window_type,
-                    pred_type.pred_type, train_method.icm_type, n, c)
+                    pred_type.pred_type, train_method.icm_type, c, n)
     return os.path.join(path, name)
     
 def vpts_file(system, train_method, pred_type, n, c):
@@ -96,3 +112,4 @@ def attractorsamples_file(system, train_method, pred_type, n, c):
     name = '{}-{}-{}-{}-d{}-n{}-attractor.pkl'.format(system, train_method.window_type,
                     pred_type.pred_type, train_method.icm_type, c, n)
     return os.path.join(path, name)
+    
