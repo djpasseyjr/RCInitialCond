@@ -6,7 +6,7 @@ import subprocess
 def empty_func():
     pass
 
-def save_figs(filename, _folder, _extension, gen_func, *args, **kwargs):
+def save_figs(filename, _folder, gen_func, _extension='pdf', fn_args=tuple(), fn_kwargs=dict(), **savefig_args):
     print('{:.<30} '.format(filename), end='', flush=True)
     # Generate the plots
     # We do janky stuff to make plt.show() not do stuff; plt.ion/ioff also works but tended to mess up figure sizes
@@ -23,11 +23,11 @@ def save_figs(filename, _folder, _extension, gen_func, *args, **kwargs):
     if len(fignums) == 0:
         raise ValueError("Function {} did not generate any plots!".format(gen_func.__name__))
     elif len(fignums) == 1:
-        plt.savefig(full_filename + '.' + _extension, format=_extension, bbox_inches='tight')
+        plt.savefig(full_filename + '.' + _extension, format=_extension, bbox_inches='tight', **savefig_args)
     else:
         for n,i in enumerate(fignums):
             fig = plt.figure(i)
-            plt.savefig(full_filename+'_'+str(n) + '.' + _extension, format=_extension, bbox_inches='tight')
+            plt.savefig(full_filename+'_'+str(n) + '.' + _extension, format=_extension, bbox_inches='tight', **savefig_args)
     plt.close('all')
     print('done')
     
@@ -52,29 +52,30 @@ if __name__ == "__main__":
     import _icmap_example
     import _attractor_with_train
     import _attractor_compare
+    import _train_time_compare
 
     PLOT_ITEMS = [
         ('vpts', _vpts.create_vpt_plots, list(), dict()),
         ('icmap-example', _icmap_example.create_icmap_example_plot, list(), dict()),
         ('training-uniformity', _attractor_with_train.create_plots, list(), dict()),
-        ('uniformity-comparison', _attractor_compare.create_plots, list(), dict()),
+        ('uniformity-comparison', _attractor_compare.create_plots, list(), dict(),
+                    {'_extension':'png', 'dpi':500}),
+        ('train-time-compare', _train_time_compare.make_plots, list(), dict()),
     ]
 
     
     #################################################################################
     
     if args.draft:
-        extension = 'png'
         folder = 'figures-draft'
     else:
-        extension = 'pdf'
         folder = 'figures'
     
     os.makedirs(folder, exist_ok=True)
     
     if args.all:
         for filename, func, args, kwargs in PLOT_ITEMS:
-            save_figs(filename, folder, extension, func, *args, **kwargs)
+            save_figs(filename, folder, func, *args, **kwargs)
         print("Done.")
     else:
         # Validate
@@ -84,6 +85,10 @@ if __name__ == "__main__":
             print("Invalid plot names: '{}'".format("', '".join(invalid_args)))
         else:
             for name in args.plots:
-                filename, func, args, kwargs = valid_plots[name]
-                save_figs(filename, folder, extension, func, *args, **kwargs)
+                filename, func, args, kwargs = valid_plots[name][:4]
+                if len(valid_plots[name]) == 5:
+                    plt_kwargs = valid_plots[name][-1]
+                else:
+                    plt_kwargs = dict()
+                save_figs(filename, folder, func, fn_args=args, fn_kwargs=kwargs, **plt_kwargs)
             print("Done.")

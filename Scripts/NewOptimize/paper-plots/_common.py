@@ -14,6 +14,17 @@ plt.rcParams.update({
     'font.serif': ['Computer Modern Roman'],
 })
 
+# Wrapper to make plots close in case of exception
+def safeclose(func):
+    """Closes all plots in the case of an exception"""
+    def inner(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            plt.close('all')
+            raise
+    return inner
+
 # Helper methods for plots
 def clear_3d_axis_labels(ax):
     """
@@ -68,7 +79,7 @@ ALL_BASE_EXPERIMENTS = lambda: itertools.product(SYSTEMS, TRAIN_METHODS.values()
 ALL_BASE_EXPERIMENTS_KEY = lambda: itertools.product(SYSTEMS, TRAIN_METHODS.items(), PRED_TYPES.items())
 
 # Formats for data file names
-def hyperparams_file(system, train_method, pred_type, n, c):
+def hyperparams_file(system, train_method, pred_type, n, c, traintime=None):
     """
     Returns the filename of the hyperparameter file for the given experiment
     Parameters
@@ -78,12 +89,17 @@ def hyperparams_file(system, train_method, pred_type, n, c):
         n (int)
         c (float) - reservoir network mean degree
     """
-    path = '../results'
-    name = '{}-{}-{}-{}-d{}-n{}.pkl'.format(system, train_method.window_type,
-                    pred_type.pred_type, train_method.icm_type, c, n)
+    if traintime is None:
+        path = '../results'
+        name = '{}-{}-{}-{}-d{}-n{}.pkl'.format(system, train_method.window_type,
+                        pred_type.pred_type, train_method.icm_type, c, n)
+    else:
+        path = '../traintimes/optimization'
+        name = '{}-{}-{}-{}-d{}-n{}-tr{}.pkl'.format(system, train_method.window_type,
+                        pred_type.pred_type, train_method.icm_type, c, n, traintime)
     return os.path.join(path, name)
     
-def vpts_file(system, train_method, pred_type, n, c):
+def vpts_file(system, train_method, pred_type, n, c, traintime=None):
     """
     Returns the filename of the VPTs file for the given experiment
     Parameters
@@ -93,9 +109,14 @@ def vpts_file(system, train_method, pred_type, n, c):
         n (int)
         c (float) - reservoir network mean degree
     """
-    path = '../vpt_results'
-    name = '{}-{}-{}-{}-d{}-n{}-vpts.pkl'.format(system, train_method.window_type,
-                    pred_type.pred_type, train_method.icm_type, c, n)
+    if traintime is None:
+        path = '../vpt_results'
+        name = '{}-{}-{}-{}-d{}-n{}-vpts.pkl'.format(system, train_method.window_type,
+                        pred_type.pred_type, train_method.icm_type, c, n)
+    else:
+        path = '../traintimes/vpts'
+        name = '{}-{}-{}-{}-d{}-n{}-tr{}-vpts.pkl'.format(system, train_method.window_type,
+                        pred_type.pred_type, train_method.icm_type, c, n, traintime)
     return os.path.join(path, name)
     
 def attractorsamples_file(system, train_method, pred_type, n, c):
