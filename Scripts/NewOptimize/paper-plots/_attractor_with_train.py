@@ -1,11 +1,11 @@
 from matplotlib import pyplot as plt, colors, cm
 import numpy as np
 import dill as pickle
-import rescomp as rc
 
 from _common import *
 
 def attractor_with_train_signal(system, train_method, c, n, idx):
+    import rescomp as rc
     if isinstance(train_method, str):
         train_method = TRAIN_METHODS[train_method]
     # Load the data

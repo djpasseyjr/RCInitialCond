@@ -1,6 +1,5 @@
 from matplotlib import pyplot as plt
 import matplotlib
-import rescomp as rc
 import numpy as np
 import warnings
 import sys
@@ -8,6 +7,7 @@ import sys
 from _common import *
 
 def create_icmap_example_plot(seed=73323):
+    import rescomp as rc
 
     # fix the seed for consistency
     np.random.seed(seed)
