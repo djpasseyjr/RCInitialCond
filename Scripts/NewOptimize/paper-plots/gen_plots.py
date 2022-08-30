@@ -40,6 +40,8 @@ if __name__ == "__main__":
                     help='Which plot to make')
     _group.add_argument('--all', action='store_true',
                     help='Generate all plots')
+    _group.add_argument('--list', action='store_true',
+                    help='Lists all available plots')
     parser.add_argument('--draft', action='store_true',
                     help='Create plots as .png files (faster but lower quality)')
     args = parser.parse_args()
@@ -73,7 +75,10 @@ if __name__ == "__main__":
     
     os.makedirs(folder, exist_ok=True)
     
-    if args.all:
+    if args.list:
+        print("Available plots:")
+        print('    ' + '\n    '.join(map(lambda x:x[0], PLOT_ITEMS)))
+    elif args.all:
         for filename, func, args, kwargs in PLOT_ITEMS:
             save_figs(filename, folder, func, *args, **kwargs)
         print("Done.")
