@@ -14,7 +14,7 @@ ntasks = 16
 if __name__=="__main__":
     experiments = list(itertools.product(
         [
-        *itertools.product(['lorenz'],[1.0, 3.0, 10.0, 30.0]),
+        *itertools.product(['lorenz'],[1.0, 3.0, 10.0, 30.0, 60.0, 100.0]),
         *itertools.product(['thomas'],[10.0, 30.0, 100.0, 1000.0]),
         *itertools.product(['rossler'],[5.0, 15.0, 50.0, 300.0]),
         ],
