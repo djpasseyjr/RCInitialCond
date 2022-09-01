@@ -71,8 +71,10 @@ def indiv_plot(data, pred_type):
                 )
             
             times = np.array(times)
+            lower_err = np.array(lower_err)
+            upper_err = np.array(upper_err)
             
-            errs = np.row_stack((lower_err, upper_err))
+            #errs = np.row_stack((lower_err, upper_err))
             
             ax.plot(
                 times, means, '.', color=colors[train_method.key], 
@@ -83,10 +85,17 @@ def indiv_plot(data, pred_type):
                 alpha=1.0,
             )
             
-            ax.errorbar(
-                times, means, yerr=errs, fmt='none', color=colors[train_method.key],
-                capsize=4.0, capthick=2.0, alpha=0.3,
+            ax.fill_between(
+                times, means - lower_err, means + upper_err,
+                color=colors[train_method.key],
+                alpha=0.3,
+                edgecolor='none',
             )
+            
+            #ax.errorbar(
+            #    times, means , yerr=errs, fmt='none', color=colors[train_method.key],
+            #    capsize=4.0, capthick=2.0, alpha=0.3,
+            #)
             
         ax.set_title(system.capitalize())
         ax.set_xlabel('Train time')
