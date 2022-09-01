@@ -60,7 +60,7 @@ if __name__ == "__main__":
         ('vpts', _vpts.create_vpt_plots, list(), dict()),
         ('icmap-example', _icmap_example.create_icmap_example_plot, list(), dict()),
         ('training-uniformity', _attractor_with_train.create_plots, list(), dict()),
-        ('uniformity-comparison', _attractor_compare.create_plots, list(), dict(),
+        ('uniformity-comparison', _attractor_compare.create_plots_as_single, list(), dict(),
                     {'_extension':'png', 'dpi':500}),
         ('train-time-compare', _train_time_compare.make_plots, list(), dict()),
     ]
