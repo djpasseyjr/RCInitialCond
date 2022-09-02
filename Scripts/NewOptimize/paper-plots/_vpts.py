@@ -110,8 +110,27 @@ def create_subplot(ax, data, system, pred_type, colors):
         max_vpt = max(max_vpt, np.max(data_item))
     
     # Mess around with the bounds
+    right_bound = {
+        'lorenz': 9.0,
+        'rossler': 150.0,
+        'thomas': 250.0,
+    }[system]
+    top_bound = {
+        'local':{
+            'lorenz': 0.4,
+            'rossler': 0.02,
+            'thomas': 0.01,
+        },
+        'global':{
+            'lorenz': 0.3,
+            'rossler': 0.02,
+            'thomas': 0.03,
+        },
+    }[pred_type.key][system]
     bounds = ax.axis()
-    ax.axis([0, max_vpt, 0, min(8/max_vpt, bounds[3])])
+    
+    
+    ax.axis([0, right_bound, 0, top_bound])
     
     bounds = ax.axis()
     if system == 'lorenz':
@@ -122,7 +141,14 @@ def create_subplot(ax, data, system, pred_type, colors):
         if pred_type.key == 'local':
             ymax = 0.012
         else:
-            ymax = 0.04
+            ymax = 0.03
     
-    ax.set_yticks(ticks=np.linspace(0,ymax,5))
+    ticks=np.linspace(0,ymax,5)
+    ax.set_yticks(
+        ticks = ticks,
+        labels = map(
+            lambda x: str(round(x,3)),
+            ticks
+        )
+    )
     

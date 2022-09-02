@@ -59,7 +59,8 @@ if __name__ == "__main__":
     PLOT_ITEMS = [
         ('vpts', _vpts.create_vpt_plots, list(), dict()),
         ('icmap-example', _icmap_example.create_icmap_example_plot, list(), dict()),
-        ('training-uniformity', _attractor_with_train.create_plots, list(), dict()),
+        ('training-uniformity', _attractor_with_train.create_plots, list(), dict(),
+                    {'_extension':'png', 'dpi':500}),
         ('uniformity-comparison', _attractor_compare.create_plots_as_single, list(), dict(),
                     {'_extension':'png', 'dpi':500}),
         ('train-time-compare', _train_time_compare.make_plots, list(), dict()),
@@ -79,8 +80,13 @@ if __name__ == "__main__":
         print("Available plots:")
         print('    ' + '\n    '.join(map(lambda x:x[0], PLOT_ITEMS)))
     elif args.all:
-        for filename, func, args, kwargs in PLOT_ITEMS:
-            save_figs(filename, folder, func, *args, **kwargs)
+        for item in PLOT_ITEMS:
+            filename, func, args, kwargs = item[:4]
+            if len(item) == 5:
+                plt_kwargs = item[-1]
+            else:
+                plt_kwargs = dict()
+            save_figs(filename, folder, func, fn_args=args, fn_kwargs=kwargs, **plt_kwargs)
         print("Done.")
     else:
         # Validate
