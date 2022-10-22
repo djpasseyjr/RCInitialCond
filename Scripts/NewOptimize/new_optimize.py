@@ -14,13 +14,14 @@ def main(system, aug_type, pred_type, init_cond, mean_degree, n, data_dir, progr
     
     optimizer = rcopt.ResCompOptimizer(
         system, init_cond, pred_type, aug_type,
-        rm_params = ['mean_degree'],
+        rm_params = ['mean_degree', 'window_size'],
         parallel_profile=parallel_profile,
         # Intermediate file
         progress_file=os.path.join(progress_dir,'progress-{}-{}-{}-{}-d{}-n{}.pkl'.format(system, aug_type, pred_type, init_cond, mean_degree, n)),
         # Rescomp parameters
         mean_degree = mean_degree,
         res_sz = n,
+        window_size = (whatever)
         ##
     )
     

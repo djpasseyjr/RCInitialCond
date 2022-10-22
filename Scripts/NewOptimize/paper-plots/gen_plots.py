@@ -6,7 +6,7 @@ import subprocess
 def empty_func():
     pass
 
-def save_figs(filename, _folder, gen_func, _extension='pdf', fn_args=tuple(), fn_kwargs=dict(), **savefig_args):
+def save_figs(filename, _folder, gen_func, _extension='pdf', fn_args=tuple(), fn_kwargs=dict(), bbox_inches='tight', **savefig_args):
     print('{:.<30} '.format(filename), end='', flush=True)
     # Generate the plots
     # We do janky stuff to make plt.show() not do stuff; plt.ion/ioff also works but tended to mess up figure sizes
@@ -23,11 +23,11 @@ def save_figs(filename, _folder, gen_func, _extension='pdf', fn_args=tuple(), fn
     if len(fignums) == 0:
         raise ValueError("Function {} did not generate any plots!".format(gen_func.__name__))
     elif len(fignums) == 1:
-        plt.savefig(full_filename + '.' + _extension, format=_extension, bbox_inches='tight', **savefig_args)
+        plt.savefig(full_filename + '.' + _extension, format=_extension, bbox_inches=bbox_inches, **savefig_args)
     else:
         for n,i in enumerate(fignums):
             fig = plt.figure(i)
-            plt.savefig(full_filename+'_'+str(n) + '.' + _extension, format=_extension, bbox_inches='tight', **savefig_args)
+            plt.savefig(full_filename+'_'+str(n) + '.' + _extension, format=_extension, bbox_inches=bbox_inches, **savefig_args)
     plt.close('all')
     print('done')
     
@@ -60,8 +60,10 @@ if __name__ == "__main__":
         ('vpts', _vpts.create_vpt_plots, list(), dict()),
         ('icmap-example', _icmap_example.create_icmap_example_plot, list(), dict()),
         ('training-uniformity', _attractor_with_train.create_plots, list(), dict(),
-                    {'_extension':'png', 'dpi':500}),
+                    {'_extension':'png', 'dpi':500, 'bbox_inches':None}),
         ('uniformity-comparison', _attractor_compare.create_plots_as_single, list(), dict(),
+                    {'_extension':'png', 'dpi':500}),
+        ('uniformity-comparison-separate', _attractor_compare.create_plots_as_separate, list(), dict(),
                     {'_extension':'png', 'dpi':500}),
         ('train-time-compare', _train_time_compare.make_plots, list(), dict()),
     ]

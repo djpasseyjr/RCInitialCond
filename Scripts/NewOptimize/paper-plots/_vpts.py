@@ -29,10 +29,7 @@ def create_vpt_plots(n=1000, c=1.0, figsize=(12,4)):
     # Fetch the data
     data = fetch_data(n, c)
     
-    colors = dict(zip(
-        TRAIN_METHODS.keys(),
-        ['r', 'g', 'b']
-    ))
+    colors = method_colors
     
     for pr_key, pred_type in PRED_TYPES.items():
         # Create the figure
@@ -76,7 +73,8 @@ def create_subplot(ax, data, system, pred_type, colors):
             kernel_scale = 1.0
         
         # Plot the KDE
-        seaborn.kdeplot(data=data_item, color=colors[tr_key], ax=ax, warn_singular=False, fill=True, clip=(0,1000), bw_adjust=kernel_scale, alpha=0.1, linewidth=2)
+        seaborn.kdeplot(data=data_item, color=colors[tr_key], ax=ax, warn_singular=False, fill=False, clip=(0,1000), bw_adjust=kernel_scale, linewidth=2)
+        seaborn.kdeplot(data=data_item, color=fill_colors[tr_key], ax=ax, warn_singular=False, fill=True, clip=(0,1000), bw_adjust=kernel_scale, alpha=fill_alpha, linewidth=0)
         
         ax.set_ylabel(None)
         
@@ -84,25 +82,26 @@ def create_subplot(ax, data, system, pred_type, colors):
         # Manually set up so they line up with the KDE plot
         # Changing pretty much anything would necessitate changing
         #   most of these
+        #TODO find a way to automate this
         mean_plot_height = {
             ('lorenz', 'standard', 'local'):    0.60,
             ('lorenz', 'standard', 'global'):   0.999,
             ('lorenz', 'icm', 'local'):         0.55,
             ('lorenz', 'icm', 'global'):        0.999,
             ('lorenz', 'windows', 'local'):     0.61,
-            ('lorenz', 'windows', 'global'):    0.35,
-            ('rossler', 'standard', 'local'):   0.77,
+            ('lorenz', 'windows', 'global'):    0.82,
+            ('rossler', 'standard', 'local'):   0.76,
             ('rossler', 'standard', 'global'):  0.999,
-            ('rossler', 'icm', 'local'):        0.77,
+            ('rossler', 'icm', 'local'):        0.76,
             ('rossler', 'icm', 'global'):       0.999,
             ('rossler', 'windows', 'local'):    0.72,
-            ('rossler', 'windows', 'global'):   0.37,
+            ('rossler', 'windows', 'global'):   0.74,
             ('thomas', 'standard', 'local'):    0.82,
             ('thomas', 'standard', 'global'):   0.999,
-            ('thomas', 'icm', 'local'):         0.79,
-            ('thomas', 'icm', 'global'):        0.64,
+            ('thomas', 'icm', 'local'):         0.77,
+            ('thomas', 'icm', 'global'):        0.999,
             ('thomas', 'windows', 'local'):     0.72,
-            ('thomas', 'windows', 'global'):    0.43,
+            ('thomas', 'windows', 'global'):    0.52,
         }[(system, tr_key, pred_type.key)]
         
         ax.axvline(x=np.mean(data_item), color=colors[tr_key], linestyle="--",alpha=0.8, ymax=mean_plot_height)
@@ -124,11 +123,9 @@ def create_subplot(ax, data, system, pred_type, colors):
         'global':{
             'lorenz': 0.3,
             'rossler': 0.02,
-            'thomas': 0.03,
+            'thomas': 0.016,
         },
     }[pred_type.key][system]
-    bounds = ax.axis()
-    
     
     ax.axis([0, right_bound, 0, top_bound])
     
@@ -141,7 +138,7 @@ def create_subplot(ax, data, system, pred_type, colors):
         if pred_type.key == 'local':
             ymax = 0.012
         else:
-            ymax = 0.03
+            ymax = bounds[3]
     
     ticks=np.linspace(0,ymax,5)
     ax.set_yticks(

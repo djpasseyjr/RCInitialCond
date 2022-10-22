@@ -70,6 +70,29 @@ TRAIN_METHODS = {
     'windows':TrainMethod('Windowed method', 'windows', 'augmented', 'activ_f'),
 }
 
+
+"""
+method_colors = {
+    'standard': (0.75, 0.4, 0.3),
+    'icm': (0.4, 0.7, 0.5),
+    'windows': (0.4, 0.45, 0.9),
+}
+fill_colors = {
+    'standard': 'r',
+    'icm': 'g',
+    'windows': 'b',
+}
+fill_alpha = 0.08
+"""
+method_cmap = plt.get_cmap('gnuplot')
+method_colors = {
+    'standard': method_cmap(0.13),
+    'icm': method_cmap(0.6),
+    'windows': method_cmap(0.88),
+}
+fill_colors = method_colors
+fill_alpha = 0.20
+
 PRED_TYPES = {
     'local':PredictionType('Local prediction', 'local', 'continue'),
     'global':PredictionType('Global prediction', 'global', 'random'),

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --mail-user=tpool27@gmail.com   # email address
+#SBATCH --mail-user=lostinnowhere314@gmail.com   # email address
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 

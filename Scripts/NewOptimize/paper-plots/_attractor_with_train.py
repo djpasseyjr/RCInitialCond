@@ -57,11 +57,11 @@ def attractor_with_train_signal(system, train_method, c, n, idx):
 
     # Plotting time
     try:
-        fig = plt.figure(figsize=(5,8))
-        ax_tr = fig.add_axes([0.0, 0.4,1.0,0.6], projection='3d')
+        fig = plt.figure(figsize=(5,5))
+        ax_tr = fig.add_axes([-0.2, 0.3,1.2,0.9], projection='3d')
         ax_tr.patch.set_alpha(0.0)
         ax_tr.axis('off')
-        ax_samples = fig.add_axes([0.0, 0.0,1.0,0.6], projection='3d')
+        ax_samples = fig.add_axes([-0.2, -0.2,1.2,0.9], projection='3d')
         ax_samples.patch.set_alpha(0.0)
         ax_samples.axis('off')
         
@@ -89,7 +89,7 @@ def attractor_with_train_signal(system, train_method, c, n, idx):
             
         clear_3d_axis_labels(ax_tr)
         clear_3d_axis_labels(ax_samples)
-        fig.colorbar(cm.ScalarMappable(norm=norm, cmap=colormap), ax=[ax_tr, ax_samples], label='Valid Prediction Time', ticks=ticks[system], shrink=0.5, fraction=0.1, anchor=(0.0,0.3))
+        fig.colorbar(cm.ScalarMappable(norm=norm, cmap=colormap), ax=[ax_tr, ax_samples], label='Valid Prediction Time', ticks=ticks[system], shrink=0.6, fraction=0.1, anchor=(-1.0,0.5))
         plt.show()
         
     except Exception as e:

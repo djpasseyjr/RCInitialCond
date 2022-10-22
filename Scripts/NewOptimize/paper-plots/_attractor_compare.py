@@ -110,7 +110,7 @@ def create_plots_as_single(n=1000, c=1.0):
         'thomas': {
             'standard': 0,
             'icm':      0,
-            'windows':  0,
+            'windows':  1,
         },
     }
     
