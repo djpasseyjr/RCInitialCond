@@ -94,7 +94,7 @@ def create_plots_as_separate(n=1000, c=1.0):
         raise
 
 @safeclose
-def create_plots_as_single(n=1000, c=1.0):
+def create_plots_as_single(n=1000, c=1.0, plot_height = 4.5):
     # Which attractor plot to use
     which = {
         'lorenz': {
@@ -104,8 +104,8 @@ def create_plots_as_single(n=1000, c=1.0):
         },
         'rossler': {
             'standard': 0,
-            'icm':      0,
-            'windows':  0,
+            'icm':      4,
+            'windows':  1,
         },
         'thomas': {
             'standard': 0,
@@ -128,17 +128,18 @@ def create_plots_as_single(n=1000, c=1.0):
     }
     
     # Create the plots
-    fig = plt.figure(figsize=(12,4))
+    
+    fig = plt.figure(figsize=(12,plot_height))
     
     def get_plot_position(system, method):
         #Positions are [left, bottom, width, height]
         width = 0.4
-        height = 0.6
-        system_pos = np.array({
+        height = 0.6 * (4/plot_height)
+        system_pos = np.array([0,1]) - (np.array([0,1]) - np.array({
             'lorenz': [1/6, 0.63],
             'rossler': [1/6 - 1/14, 0.35],
             'thomas': [1/6+1/14, 0.35],
-        }[system])
+        }[system]))* np.array([1,4/plot_height])
         method_pos = np.array({
             'standard':[0.0, 0.0],
             'icm':[1/3, 0.0],
@@ -146,6 +147,21 @@ def create_plots_as_single(n=1000, c=1.0):
         }[method.key])
         
         return np.concatenate([system_pos + method_pos - np.array([width,height])/2, [width], [height]])
+        
+    def get_colorbar_position(system):
+        width = 0.18
+        height =  0.2 / plot_height
+        
+        pos = np.array([0.5
+            + width * 1.2*{
+                'lorenz': -1,
+                'rossler': 0,
+                'thomas': 1,
+            }[system], 
+            (1-4/plot_height)*1.2]
+        )
+        
+        return np.concatenate([pos - np.array([width,height])/2, [width], [height]])
         
     max_vpts = {
         'lorenz':   10.,
@@ -167,6 +183,8 @@ def create_plots_as_single(n=1000, c=1.0):
    
     #Create subplots 
     for system in SYSTEMS:
+        # Colors
+        norm = colors.SymLogNorm(vmin=0, vmax=max_vpts[system], linthresh=thresh[system], linscale=thresh[system]*1e-2, base=10)
         for i,train_method in enumerate(TRAIN_METHODS.values()):
             ax = fig.add_axes(
                 get_plot_position(system, train_method),
@@ -178,7 +196,6 @@ def create_plots_as_single(n=1000, c=1.0):
             x,y,z = samples[:,0], samples[:,1], samples[:,2]
             vpts = samples[:,-1]
             # Colors
-            norm = colors.SymLogNorm(vmin=0, vmax=max_vpts[system], linthresh=thresh[system], linscale=thresh[system]*1e-2, base=10)
             c = plt.get_cmap(colormap)(norm(vpts))
             
             ax.scatter(x,y,z,c=c, s=2., marker='.')
@@ -195,6 +212,15 @@ def create_plots_as_single(n=1000, c=1.0):
                 fig.text(
                     x, 0.84, train_method.name, horizontalalignment='center', fontsize=18
                 )
+        # Create the colorbar
+        ax_cbar = fig.add_axes(get_colorbar_position(system))
+        plt.colorbar(
+            mappable=cm.ScalarMappable(norm=norm, cmap=colormap), 
+            cax=ax_cbar, 
+            orientation='horizontal',
+            ticks = [0] + [max_vpts[system] * 10.**n for n in range(-2,1)]
+        )
+        ax_cbar.set_title(system.capitalize())
     
     plt.show()
     
