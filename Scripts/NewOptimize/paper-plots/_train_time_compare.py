@@ -56,8 +56,8 @@ def indiv_plot(data, pred_type):
             for tr_time, vpts in data[pred_type.key][system][train_method.key].items():
                 times.append(tr_time)
                 mean = np.mean(vpts)
-                mask_upper = vpts >= mean-1
-                mask_lower = vpts <= mean+1
+                mask_upper = vpts >= mean * 0.98
+                mask_lower = vpts <= mean / 0.98
                 means.append(mean)
                 
                 upper_err.append(
