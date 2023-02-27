@@ -13,6 +13,13 @@
 *.pkl
 *.npy
 *.npz
+*.zip
+*.csv
+
+# Generated plots
+*.html
+*.png
+*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

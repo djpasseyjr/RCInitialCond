@@ -1,0 +1,712 @@
+lorenz random continue standard
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+lorenz random continue augmented
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggestion
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_domain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'lorenz', 'random', 'continue', 'augmented', '--test']' returned non-zero exit status 1.
+
+lorenz random random standard
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+lorenz random random augmented
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'lorenz', 'random', 'random', 'augmented', '--test']' returned non-zero exit sta
+tus 1.
+
+lorenz activ_f continue standard
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+lorenz activ_f continue augmented
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'lorenz', 'activ_f', 'continue', 'augmented', '--test']' returned non-zero exit
+status 1.
+
+lorenz activ_f random standard
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+lorenz activ_f random augmented
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggestion
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_domain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'lorenz', 'activ_f', 'random', 'augmented', '--test']' returned non-zero exit st
+atus 1.
+
+lorenz relax continue standard
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+lorenz relax continue augmented
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'lorenz', 'relax', 'continue', 'augmented', '--test']' returned non-zero exit st
+atus 1.
+
+lorenz relax random standard
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+lorenz relax random augmented
+[Errno 2] No such file or directory: 'lorenz_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'lorenz', 'relax', 'random', 'augmented', '--test']' returned non-zero exit stat
+us 1.
+
+rossler random continue standard
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+rossler random continue augmented
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'rossler', 'random', 'continue', 'augmented', '--test']' returned non-zero exit
+status 1.
+
+rossler random random standard
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+rossler random random augmented
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'rossler', 'random', 'random', 'augmented', '--test']' returned non-zero exit st
+atus 1.
+
+rossler activ_f continue standard
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+rossler activ_f continue augmented
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'rossler', 'activ_f', 'continue', 'augmented', '--test']' returned non-zero exit
+ status 1.
+
+rossler activ_f random standard
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+rossler activ_f random augmented
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'rossler', 'activ_f', 'random', 'augmented', '--test']' returned non-zero exit s
+tatus 1.
+
+rossler relax continue standard
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+rossler relax continue augmented
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'rossler', 'relax', 'continue', 'augmented', '--test']' returned non-zero exit s
+tatus 1.
+
+rossler relax random standard
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+rossler relax random augmented
+[Errno 2] No such file or directory: 'rossler_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'rossler', 'relax', 'random', 'augmented', '--test']' returned non-zero exit sta
+tus 1.
+
+thomas random continue standard
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+thomas random continue augmented
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'thomas', 'random', 'continue', 'augmented', '--test']' returned non-zero exit s
+tatus 1.
+
+thomas random random standard
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+thomas random random augmented
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'thomas', 'random', 'random', 'augmented', '--test']' returned non-zero exit sta
+tus 1.
+
+thomas activ_f continue standard
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+thomas activ_f continue augmented
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'thomas', 'activ_f', 'continue', 'augmented', '--test']' returned non-zero exit
+status 1.
+
+thomas activ_f random standard
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+thomas activ_f random augmented
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'thomas', 'activ_f', 'random', 'augmented', '--test']' returned non-zero exit st
+atus 1.
+
+thomas relax continue standard
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+thomas relax continue augmented
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'thomas', 'relax', 'continue', 'augmented', '--test']' returned non-zero exit st
+atus 1.
+
+thomas relax random standard
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+thomas relax random augmented
+[Errno 2] No such file or directory: 'thomas_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'thomas', 'relax', 'random', 'augmented', '--test']' returned non-zero exit stat
+us 1.
+
+softrobo random continue standard
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+softrobo random continue augmented
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'softrobo', 'random', 'continue', 'augmented', '--test']' returned non-zero exit
+ status 1.
+
+softrobo random random standard
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+softrobo random random augmented
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'softrobo', 'random', 'random', 'augmented', '--test']' returned non-zero exit s
+tatus 1.
+
+softrobo activ_f continue standard
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+softrobo activ_f continue augmented
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'softrobo', 'activ_f', 'continue', 'augmented', '--test']' returned non-zero exi
+t status 1.
+
+softrobo activ_f random standard
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+softrobo activ_f random augmented
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'softrobo', 'activ_f', 'random', 'augmented', '--test']' returned non-zero exit
+status 1.
+
+softrobo relax continue standard
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+softrobo relax continue augmented
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'softrobo', 'relax', 'continue', 'augmented', '--test']' returned non-zero exit
+status 1.
+
+softrobo relax random standard
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+Optimization ran successfully
+Testing ran successfully
+
+softrobo relax random augmented
+[Errno 2] No such file or directory: 'softrobo_prior.pkl'
+Using empty prior instead.
+Traceback (most recent call last):
+  File "opt_then_test.py", line 349, in <module>
+    for trial in study:
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 376, in __next__
+    t = self.get_suggestion()
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/core.py", line 215, in get_suggestion
+    self.lower_is_better)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 94, in get_suggesti
+on
+    self.domain = self._initialize_domain(parameters)
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 218, in _initialize
+_domain
+    ParameterTransform.from_parameter(p).to_gpyopt_domain())
+  File "C:/Users/losti/anaconda3/lib/site-packages/sherpa/algorithms/bayesian_optimization.py", line 325, in to_gpyopt_d
+omain
+    self.parameter.range[1]+1))}
+TypeError: 'float' object cannot be interpreted as an integer
+Command '['python', 'opt_then_test.py', 'softrobo', 'relax', 'random', 'augmented', '--test']' returned non-zero exit st
+atus 1.

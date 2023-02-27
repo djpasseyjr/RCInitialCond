@@ -1,14 +1,8 @@
 #!/bin/bash
 
-#SBATCH --mail-user=quinlan.leishman@gmail.com   # email address
+#SBATCH --mail-user=tpool27@gmail.com   # email address
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
-
-SYSTEM=$1
-MAP_INITIAL=$2
-PREDICTION_TYPE=$3
-METHOD=$4
-LOGDIR=$5
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn.
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
@@ -29,4 +23,5 @@ srun ~/.local/bin/ipengine --profile=${profile} --location=$(hostname) --log-to-
 sleep 30
 
 echo "Launching job"
-"$@" ${profile}
+
+python "$@" ${profile}
