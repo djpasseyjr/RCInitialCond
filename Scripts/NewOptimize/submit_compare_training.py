@@ -1,4 +1,5 @@
 
+import numpy as np
 import dill as pickle
 import subprocess
 import itertools
