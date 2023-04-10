@@ -36,6 +36,7 @@ def main(opt_params, parallel_profile):
     optimizer = rcopt.ResCompOptimizer(
         system, init_cond, pred_type, aug_type,
         parallel_profile=parallel_profile,
+        parallel=True,
         results_directory=data_dir,
     )
     

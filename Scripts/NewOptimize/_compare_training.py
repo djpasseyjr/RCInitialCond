@@ -24,6 +24,7 @@ def main(system, aug_type, pred_type, init_cond, mean_degree, n, train_time, par
         system, init_cond, pred_type, aug_type,
         rm_params = ['mean_degree'],
         parallel_profile=parallel_profile,
+        parallel=True,
         # Intermediate file ## TODO update
         progress_file=os.path.join(progress_dir,'progress-{}-{}-{}-{}-d{}-n{}-tr{}.pkl'.format(system, aug_type, pred_type, init_cond, mean_degree, n, train_time)),
         # Rescomp parameters
