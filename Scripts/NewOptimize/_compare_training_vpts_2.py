@@ -88,8 +88,11 @@ if __name__ == "__main__":
     with open(opt_params_filen,'rb') as file:
         opt_params = pickle.load(file)
     
-    train_time = sys.argv[2]
+    train_time = float(sys.argv[2])
     
-    parallel_profile = sys.argv[3]
+    if len(sys.argv) > 3:
+        parallel_profile = sys.argv[3]
+    else:
+        parallel_profile = None
     
     main(opt_params, train_time, parallel_profile)

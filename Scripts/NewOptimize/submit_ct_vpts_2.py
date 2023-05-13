@@ -28,19 +28,21 @@ def log_interp(points, max_ratio=3.**0.2):
     
 def get_progress_filename(system, aug_type, pred_type, init_cond, 
         mean_degree, n, train_time):
-    os.path.join(progress_dir, 
-    'progress-{}-{}-{}-{}-d{}-n{}-tr{:.2f}-vpts.pkl'.format(
-        system, aug_type, pred_type, init_cond, 
-        mean_degree, n, train_time
-    ))
+    return os.path.join(progress_dir, 
+        'progress-{}-{}-{}-{}-d{}-n{}-tr{:.2f}-vpts.pkl'.format(
+            system, aug_type, pred_type, init_cond, 
+            mean_degree, n, train_time
+        )
+    )
     
 def get_results_filename(system, aug_type, pred_type, init_cond, 
         mean_degree, n, train_time):
-    os.path.join(data_dir, 
-    '{}-{}-{}-{}-d{}-n{}-tr{:.2f}-vpts.pkl'.format(
-        system, aug_type, pred_type, init_cond, 
-        mean_degree, n, train_time
-    ))
+    return os.path.join(data_dir, 
+        '{}-{}-{}-{}-d{}-n{}-tr{:.2f}-vpts.pkl'.format(
+            system, aug_type, pred_type, init_cond, 
+            mean_degree, n, train_time
+        )
+    )
     
 if __name__=="__main__":
     experiments = list(itertools.product(
