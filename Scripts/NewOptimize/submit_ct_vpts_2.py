@@ -11,7 +11,7 @@ log_dir = os.path.join(data_dir, "logfiles")
 timelimit_hr = 72
 ntasks = 16
 
-def log_interp(points, max_ratio=3.**0.21):
+def log_interp(points, max_ratio=3.**0.31):
     """
     Makes a log-scale interpolation between the points
     """
