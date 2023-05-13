@@ -11,7 +11,7 @@ log_dir = os.path.join(data_dir, "logfiles")
 timelimit_hr = 72
 ntasks = 16
 
-def log_interp(points, max_ratio=3.**0.2):
+def log_interp(points, max_ratio=3.**0.21):
     """
     Makes a log-scale interpolation between the points
     """
@@ -47,9 +47,9 @@ def get_results_filename(system, aug_type, pred_type, init_cond,
 if __name__=="__main__":
     experiments = list(itertools.product(
         [
-        *itertools.product(['lorenz'],log_interp([1.0, 3.0, 10.0, 30.0, 60.0, 100.0])),
-        *itertools.product(['thomas'],log_interp([10.0, 30.0, 100.0, 300.0, 1000.0, 3000.0])),
-        *itertools.product(['rossler'],log_interp([5.0, 15.0, 50.0, 300.0, 1000.0, 3000.0])),
+        *itertools.product(['lorenz'],log_interp([1.0, 100.0])),
+        *itertools.product(['thomas'],log_interp([10.0, 1000.0])),
+        *itertools.product(['rossler'],log_interp([5.0, 500.0])),
         ],
         [
             ('augmented', 'activ_f'),

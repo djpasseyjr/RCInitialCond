@@ -51,6 +51,9 @@ def main(opt_params, train_time, parallel_profile):
     elif system == 'rossler':
         optimizer.system.test_time = 200.0
         
+    # Set train time
+    optimizer.system.train_time = train_time
+        
     # Load progress if any so far
     progress_filename = get_progress_filename(system, aug_type, pred_type, init_cond, 
         mean_degree, n, train_time)
