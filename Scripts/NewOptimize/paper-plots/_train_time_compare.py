@@ -40,6 +40,35 @@ def collect_results():
     
     return results
     
+def collect_results2(mode=0):
+    all_results = {
+        (pred_type.pred_type, system, train_method.window_type, train_method.icm_type) : dict()
+        for system in SYSTEMS 
+        for train_method in TRAIN_METHODS.values() 
+        for pred_type in PRED_TYPES.values()
+    }
+
+    if mode == 0:
+        filenames = glob("../traintimes/vpts/*.pkl")
+    elif mode == 1:
+        filenames = glob("../traintimes2/optimization/*.pkl")
+        
+    for filename in filenames:
+        with open(filename, 'rb') as file:
+            (
+                (system, aug_type, pred_type, init_cond, mean_degree, 
+                n, train_time),
+                results
+            ) = pickle.load(file)
+        
+        all_results[(pred_type, system, aug_type, init_cond)][train_time] = np.array(results[pred_type])
+    
+    for k,v in all_results.items():
+        print(f"{k}: {len(v)}")
+    
+    return all_results
+    
+    
 def indiv_plot(data, pred_type):
     
     colors = method_colors
@@ -52,13 +81,17 @@ def indiv_plot(data, pred_type):
             means = []
             lower_err = []
             upper_err = []
+            std_err = []
             
-            for tr_time, vpts in data[pred_type.key][system][train_method.key].items():
+            for tr_time, vpts in data[
+                (pred_type.pred_type, system, train_method.window_type, train_method.icm_type)
+            ].items():
                 times.append(tr_time)
                 mean = np.mean(vpts)
-                mask_upper = vpts >= mean * 0.98
-                mask_lower = vpts <= mean / 0.98
+                mask_upper = vpts >= (mean * 0.98)
+                mask_lower = vpts <= (mean / 0.98)
                 means.append(mean)
+                #print(vpts, mask_upper)
                 
                 upper_err.append(
                     np.sqrt(
@@ -70,24 +103,34 @@ def indiv_plot(data, pred_type):
                         np.mean((vpts[mask_lower]-mean)**2)
                     )
                 )
+                std_err.append(
+                    np.sqrt(np.mean((vpts-mean)**2))/np.sqrt(len(vpts))
+                )
             
             times = np.array(times)
+            means = np.array(means)
             lower_err = np.array(lower_err)
             upper_err = np.array(upper_err)
+            std_err = np.array(std_err)
+            #lower_err = std_err
+            #upper_err = std_err
+            
+            order = np.argsort(times)
+            
             
             #errs = np.row_stack((lower_err, upper_err))
             
             ax.plot(
-                times, means, '.', color=colors[train_method.key], 
+                times[order], means[order], '.', color=colors[train_method.key], 
                 markersize=8.0
             )
             ax.plot(
-                times, means, '-', color=colors[train_method.key], 
+                times[order], means[order], '-', color=colors[train_method.key], 
                 alpha=1.0,
             )
             
             ax.fill_between(
-                times, means - lower_err, means + upper_err,
+                times[order], (means - lower_err)[order], (means + upper_err)[order],
                 color=fill_colors[train_method.key],
                 alpha=fill_alpha,
                 edgecolor='none',
@@ -122,8 +165,8 @@ def indiv_plot(data, pred_type):
     
     
 @safeclose
-def make_plots():
-    data = collect_results()
+def make_plots(mode=0):
+    data = collect_results2(mode)
     
     for pred_type in PRED_TYPES.values():
         indiv_plot(data, pred_type)

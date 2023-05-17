@@ -69,8 +69,9 @@ if __name__ == "__main__":
                     {'_extension':'png', 'dpi':500}),
         ('uniformity-comparison-separate', _attractor_compare.create_plots_as_separate, list(), dict(),
                     {'_extension':'png', 'dpi':500}),
-        ('train-time-compare', _train_time_compare.make_plots, list(), dict()),
-        ('train-time-compare', _train_time_compare.make_plots, list(), dict()),
+        ('train-time-compare', _train_time_compare.make_plots, [0], dict()),
+        ('train-time-compare-2', _train_time_compare.make_plots, [1], dict()),
+        #('train-time-compare', _train_time_compare.make_plots, list(), dict()),
         ('abstract-reservoir', _abstract_reservoir.main, list(), dict()),
     ]
 
