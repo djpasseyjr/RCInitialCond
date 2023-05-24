@@ -5,13 +5,14 @@ from glob import glob
 
 from _common import *
 
-train_times = {
-    'lorenz': [1.0, 3.0, 6.6, 10.0, 30.0, 60.0, 100.0],
-    'thomas': [10.0, 30.0, 100.0, 660.0, 1000.0, 3000.0],
-    'rossler': [5.0, 15.0, 50.0, 165.0, 300.0, 1000.0, 3000.0],
-}
+
 
 def collect_results():
+    train_times = {
+        'lorenz': [1.0, 3.0, 6.6, 10.0, 30.0, 60.0, 100.0],
+        'thomas': [10.0, 30.0, 100.0, 660.0, 1000.0, 3000.0],
+        'rossler': [5.0, 15.0, 50.0, 165.0, 300.0, 1000.0, 3000.0],
+    }
 
     def _get_indiv(system, pred_type, train_method, train_time):
         filename = vpts_file(system, train_method, pred_type, 1000, 1.0, traintime=train_time)
@@ -69,7 +70,7 @@ def collect_results2(mode=0):
     return all_results
     
     
-def indiv_plot(data, pred_type):
+def indiv_plot(data, pred_type, mode=0):
     
     colors = method_colors
     
@@ -144,6 +145,19 @@ def indiv_plot(data, pred_type):
         ax.set_title(system.capitalize())
         ax.set_xlabel('Train time')
         ax.set_xscale('log')
+        
+        if mode==0:
+            train_times = {
+                'lorenz': [1.0, 3.0, 6.6, 10.0, 30.0, 60.0, 100.0],
+                'thomas': [10.0, 30.0, 100.0, 660.0, 1000.0, 3000.0],
+                'rossler': [5.0, 15.0, 50.0, 165.0, 300.0, 1000.0, 3000.0],
+            }
+        else:
+            train_times = {
+                'lorenz': [1.0, 3.0, 6.6, 10.0, 30.0, 60.0, 100.0],
+                'thomas': [10.0, 30.0, 100.0, 660.0, 1000.0],
+                'rossler': [5.0, 15.0, 50.0, 165.0, 300.0, 500.0],
+            }
         ax.set_xticks(
             train_times[system], 
             map(
@@ -169,5 +183,5 @@ def make_plots(mode=0):
     data = collect_results2(mode)
     
     for pred_type in PRED_TYPES.values():
-        indiv_plot(data, pred_type)
+        indiv_plot(data, pred_type, mode)
     plt.show()
