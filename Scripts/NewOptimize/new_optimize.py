@@ -21,7 +21,6 @@ def main(system, aug_type, pred_type, init_cond, mean_degree, n, data_dir, progr
         # Rescomp parameters
         mean_degree = mean_degree,
         res_sz = n,
-        window_size = (whatever)
         ##
     )
     
