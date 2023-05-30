@@ -12,6 +12,7 @@ plt.rcParams.update({
     "font.family": "serif",
     'font.sans-serif': ['Computer Modern Roman'],
     'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsfonts}',
 })
 
 # Wrapper to make plots close in case of exception

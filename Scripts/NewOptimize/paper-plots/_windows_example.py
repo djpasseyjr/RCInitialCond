@@ -50,9 +50,8 @@ def create_windows_example(seed=52673):
     ax_sig = fig.add_axes([0.05,0.55, 0.4, 0.37])
     axs_sys = [fig.add_axes([0.05 + 0.1*j, 0.07 + 0.18*(j%2), 0.15, 0.15]) for j in range(n_windows)]
     axs_res = [fig.add_axes([0.52 + 0.1*j, 0.58 + 0.18*(j%2), 0.15, 0.15]) for j in range(n_windows)]
-    ax_agg = fig.add_axes([0.55,0.08, 0.4, 0.37])
-    ax_agg.set_xticks([])
-    ax_agg.set_yticks([])
+    
+    axs_agg = [fig.add_axes([0.52 + 0.1*j, 0.07 + 0.18*(j%2), 0.15, 0.15]) for j in range(n_windows)]
     
     # This one is for arrows, &c
     ax_overlay = fig.add_axes([0, 0, 1, 1])
@@ -66,12 +65,7 @@ def create_windows_example(seed=52673):
         U[900:1100 + (n_windows+1)*window_n_pts], 
         color=(0.0, 0.3, 0.8)
     )
-    ax_agg.plot(
-        t[900:1100 + (n_windows+1)*window_n_pts], 
-        U[900:1100 + (n_windows+1)*window_n_pts], 
-        color=(0.0, 0.3, 0.8),
-        alpha=0.5,
-    )
+    
     # Plot window boundaries
     boundaries = 1000 + window_n_pts*np.arange(2+n_windows) * (1-display_overlap)
     for idx in boundaries:
@@ -80,11 +74,11 @@ def create_windows_example(seed=52673):
             ymin=0.1, ymax=0.9,
             color='k', linestyle='--', alpha=0.8, 
         )
-        ax_agg.axvline(
-            t[int(idx)], 
-            ymin=0.1, ymax=0.9,
-            color='k', linestyle='--', alpha=0.8, 
-        )
+        #ax_agg.axvline(
+        #    t[int(idx)], 
+        #    ymin=0.1, ymax=0.9,
+        #    color='k', linestyle='--', alpha=0.8, 
+        #)
     ax_sig.axis([t[900], t[1099 + (n_windows+1)*window_n_pts], None, None])
     ax_sig.set_yticks([])
     ax_sig.set_xticks([])
@@ -124,8 +118,16 @@ def create_windows_example(seed=52673):
         
         ax_res.axis([None,None,-1,1])
         
+        ax_agg = axs_agg[j]
+        ax_agg.set_xticks([])
+        ax_agg.set_yticks([])
+        # Plot the original signal
+        ax_agg.plot(tr_t, tr_signal, color=(0.0, 0.3, 0.8))
+        
         # Plot the aggregated response
         ax_agg.plot(tr_t, res_signal @ rescomp.W_out.T, color=method_colors['icm'])
+        
+        
         
         # a r r o w s
         arrow_params = dict(
@@ -141,46 +143,48 @@ def create_windows_example(seed=52673):
         # Signal -> windowed signal
         ax_overlay.annotate(
             "",
-            xytext=(0.125 + 0.065*j, 0.58), 
+            xytext=(0.125 + 0.062*j, 
+                0.56), 
             xy=(0.05 + 0.1*j + 0.075, 
-            0.07 + 0.18*(j%2) + 0.15 + 0.01),
+                0.24 + 0.18*(j%2)),
             **arrow_params
         )
         # windowed signal -> response
         ax_overlay.annotate(
             "",
-            xytext=(0.43 + 0.012*j, 0.41), 
-            xy=(0.57 - 0.012*(3-j), 0.57),
+            xytext=(0.44 + 0.012*j, 0.41), 
+            xy=(0.58 - 0.012*(3-j), 0.57),
             **arrow_params
         )
         # response -> aggregation
         ax_overlay.annotate(
             "",
-            xy=(0.625 + 0.065*j, 0.43), 
-            xytext=(0.50 + 0.1*j + 0.075, 
-            0.58 + 0.18*(j%2) - 0.01),
+            xytext=(0.50 + 0.1*j + 0.09, 
+                0.56 + 0.18*(j%2)),
+            xy=(0.50 + 0.1*j + 0.09, 
+                0.24 + 0.18*(j%2)), 
             **arrow_params
         )
         
     # Plot more reservoir responses to get a more complete appearance
-    for start in window_starts_more:
-        tr_t = t[start:start+window_n_pts]
-        tr_signal = U[start:start+window_n_pts]
-        r0 = rescomp.initial_condition(tr_signal[0])
-        res_signal = rescomp.internal_state_response(tr_t, tr_signal, r0)
-        ax_agg.plot(tr_t, res_signal @ rescomp.W_out.T, color=method_colors['icm'])
+    #for start in window_starts_more:
+    #    tr_t = t[start:start+window_n_pts]
+    #    tr_signal = U[start:start+window_n_pts]
+    #    r0 = rescomp.initial_condition(tr_signal[0])
+    #    res_signal = rescomp.internal_state_response(tr_t, tr_signal, r0)
+    #    ax_agg.plot(tr_t, res_signal @ rescomp.W_out.T, color=method_colors['icm'])
         
     textparams = {
         'fontsize': 18,
         'horizontalalignment': 'center',
         'transform': ax_overlay.transAxes,
     }
-    ax_overlay.text(0.25, 0.95, r'Training signal', **textparams)
+    ax_overlay.text(0.25, 0.95, r'Training Signal $\mathbf{u}(t)\in \mathbb{R}^m$', **textparams)
     ax_overlay.text(0.25, 0.02, r'Windows', **textparams)
-    ax_overlay.text(0.75, 0.95, r'Reservoir responses', **textparams)
-    ax_overlay.text(0.75, 0.02, r'Aggregated responses', **textparams)
+    ax_overlay.text(0.75, 0.95, r'Reservoir Responses $\mathbf{r}(t)\in \mathbb{R}^n$', **textparams)
+    ax_overlay.text(0.75, 0.02, r'Aggregated Responses $\hat{\mathbf{u}}(t)\in \mathbb{R}^m$', **textparams)
     
-    ax_agg.axis([t[900], t[1099 + (n_windows+1)*window_n_pts], None, None])
+    #ax_agg.axis([t[900], t[1099 + (n_windows+1)*window_n_pts], None, None])
     
     
     plt.show()
