@@ -65,8 +65,8 @@ def create_icmap_example_plot(seed=73323):
             'fontsize': 16,
             'horizontalalignment': 'center',
         }
-        ax_sys.text(tr_signal[0,0], tr_signal[0,1], tr_signal[0,2]+5, r"$\mathbf{u}_0$", **textparams)
-        ax_res.text(tr_t[0], 1.0, r"$\mathbf{r}_0$", **textparams)
+        ax_sys.text(tr_signal[0,0], tr_signal[0,1], tr_signal[0,2]+5, r"$\mathbf{v}$", **textparams)
+        ax_res.text(tr_t[0], 1.0, r"$\mathbf{r}_T$", **textparams)
         
         bounding_box = ax_res.get_position()
         height = 0.5

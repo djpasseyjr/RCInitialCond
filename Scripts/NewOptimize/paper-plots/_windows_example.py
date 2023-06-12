@@ -118,7 +118,7 @@ def create_windows_example(seed=52673):
         ax_res.set_xticks([])
         ax_res.set_yticks([])
         
-        ax_res.axis([None,None,-1,1])
+        ax_res.axis([None,None,-1.05,1.05])
         ax_res.set_title(f"$\\mathbf{{r}}_{subscript}(t)$", y=1.0)
         
         ax_agg = axs_agg[j]

@@ -67,7 +67,7 @@ SYSTEMS = [
 # Train methods
 TRAIN_METHODS = {
     'standard':TrainMethod('Standard method', 'standard', 'standard', 'random'),
-    'icm':TrainMethod('ICM method', 'icm', 'standard', 'activ_f'),
+    'icm':TrainMethod('Partial method', 'icm', 'standard', 'activ_f'),
     'windows':TrainMethod('Windowed method', 'windows', 'augmented', 'activ_f'),
 }
 

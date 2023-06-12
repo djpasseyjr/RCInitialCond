@@ -34,20 +34,23 @@ def create_vpt_plots(n=1000, c=1.0, figsize=(12,4)):
     for pr_key, pred_type in PRED_TYPES.items():
         # Create the figure
         fig, axs = plt.subplots(1,3, figsize=figsize)
-        plt.suptitle('{} accuracy (VPT)'.format(pred_type.name), fontsize=16.0)
+        plt.suptitle('{} accuracy (VPT)'.format(pred_type.name), fontsize=14.0)
         
         # Draw each subplot
         for i, system in enumerate(SYSTEMS):
             create_subplot(axs[i], data[pr_key][system], system, pred_type, colors)
-            axs[i].set_title(str.capitalize(system), fontsize=14.0)
+            axs[i].set_title(str.capitalize(system), fontsize=10.0)
+            axs[i].set_xlabel('VPT')
+            
         
         # Create the legend
         legend_items = [matplotlib.lines.Line2D([0],[0], color=colors[tr_key], lw = 4, label=train_method.name)
             for (tr_key, train_method) in TRAIN_METHODS.items()]
         axs[-1].legend(handles=legend_items, loc=(0.55, 0.7), fontsize=10.0, framealpha=1.0)
+        axs[0].set_ylabel('Frequency')
             
         #Adjust positioning
-        plt.subplots_adjust(left=0.06, right=0.92)
+        #plt.subplots_adjust(left=0.06, right=0.92)
     plt.show()
 
 def create_subplot(ax, data, system, pred_type, colors):

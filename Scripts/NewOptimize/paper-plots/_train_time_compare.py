@@ -64,8 +64,8 @@ def collect_results2(mode=0):
         
         all_results[(pred_type, system, aug_type, init_cond)][train_time] = np.array(results[pred_type])
     
-    for k,v in all_results.items():
-        print(f"{k}: {len(v)}")
+    #for k,v in all_results.items():
+    #    print(f"{k}: {len(v)}")
     
     return all_results
     
@@ -74,7 +74,7 @@ def indiv_plot(data, pred_type, mode=0):
     
     colors = method_colors
     
-    fig, axs = plt.subplots(1,3, figsize=(12,4))
+    fig, axs = plt.subplots(1,3, figsize=(12,2.5))
     
     for system, ax in zip(SYSTEMS, axs):
         for train_method in TRAIN_METHODS.values():
@@ -142,7 +142,7 @@ def indiv_plot(data, pred_type, mode=0):
             #    capsize=4.0, capthick=2.0, alpha=0.3,
             #)
             
-        ax.set_title(system.capitalize())
+        ax.set_title(system.capitalize(), fontsize=10.0)
         ax.set_xlabel('Train time')
         ax.set_xscale('log')
         
@@ -154,9 +154,9 @@ def indiv_plot(data, pred_type, mode=0):
             }
         else:
             train_times = {
-                'lorenz': [1.0, 3.0, 6.6, 10.0, 30.0, 60.0, 100.0],
-                'thomas': [10.0, 30.0, 100.0, 660.0, 1000.0],
-                'rossler': [5.0, 15.0, 50.0, 165.0, 300.0, 500.0],
+                'lorenz': [1.0, 3.0, 10.0, 30.0, 60.0, 100.0],
+                'thomas': [10.0, 30.0, 100.0, 300.0, 1000.0],
+                'rossler': [5.0, 15.0, 50.0, 150.0, 500.0],
             }
         ax.set_xticks(
             train_times[system], 
@@ -169,14 +169,16 @@ def indiv_plot(data, pred_type, mode=0):
         
         ax.axis([None,None,0,None])
     
-    plt.suptitle("{} accuracy (VPT)".format(pred_type.name))
+    plt.suptitle("{} accuracy (VPT) by training signal length".format(pred_type.name), fontsize=14.0)
     axs[0].set_ylabel("VPT")
     legend_items = [
         matplotlib.lines.Line2D([0],[0], color=colors[tr_key], lw = 4, label=train_method.name)
         for (tr_key, train_method) in TRAIN_METHODS.items()
     ]
-    axs[-1].legend(handles=legend_items, loc=(0.05, 0.75), fontsize=10.0, framealpha=1.0)
+    axs[-1].legend(handles=legend_items, loc=(0.05, 0.65), fontsize=8.0, framealpha=1.0)
     
+    if mode==1:
+        plt.subplots_adjust(top=0.8)
     
 @safeclose
 def make_plots(mode=0):
@@ -184,4 +186,5 @@ def make_plots(mode=0):
     
     for pred_type in PRED_TYPES.values():
         indiv_plot(data, pred_type, mode)
+    
     plt.show()
