@@ -11,7 +11,7 @@ if __name__ == '__main__':
     data_dir = "vpt_results"
     progress_dir = os.path.join(data_dir, 'progress')
     ntasks = 16
-    timelimit_hr = 120
+    timelimit_hr = 72
 
     subprocess.run(['mkdir', data_dir])
     subprocess.run(['mkdir', progress_dir])

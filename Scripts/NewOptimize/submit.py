@@ -17,7 +17,9 @@ systems = [
 exp_types = [
     ('augmented', 'activ_f'),
     ('standard', 'activ_f'),
-    ('standard', 'random'),
+    #('standard', 'random'),
+    ('standard', 'pseudoinverse'),
+    ('standard', "random-activ_f"),
 ]
 
 pred_types = [
