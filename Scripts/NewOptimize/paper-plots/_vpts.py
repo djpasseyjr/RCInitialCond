@@ -25,7 +25,7 @@ def fetch_data(n, c):
     return results
     
 @safeclose
-def create_vpt_plots(n=1000, c=1.0, figsize=(12,4)):
+def create_vpt_plots(n=1000, c=1.0, figsize=(12,3)):
     # Fetch the data
     data = fetch_data(n, c)
     
@@ -51,6 +51,7 @@ def create_vpt_plots(n=1000, c=1.0, figsize=(12,4)):
             
         #Adjust positioning
         #plt.subplots_adjust(left=0.06, right=0.92)
+        plt.subplots_adjust(top=0.85)
     plt.show()
 
 def create_subplot(ax, data, system, pred_type, colors):

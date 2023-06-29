@@ -92,7 +92,7 @@ method_colors = {
     'windows': method_cmap(0.88),
 }
 fill_colors = method_colors
-fill_alpha = 0.20
+fill_alpha = 0.16
 
 PRED_TYPES = {
     'local':PredictionType('Local prediction', 'local', 'continue'),

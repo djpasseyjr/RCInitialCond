@@ -74,7 +74,7 @@ def indiv_plot(data, pred_type, mode=0):
     
     colors = method_colors
     
-    fig, axs = plt.subplots(1,3, figsize=(12,2.5))
+    fig, axs = plt.subplots(1,3, figsize=(9.8,2.2))
     
     for system, ax in zip(SYSTEMS, axs):
         for train_method in TRAIN_METHODS.values():
@@ -175,10 +175,9 @@ def indiv_plot(data, pred_type, mode=0):
         matplotlib.lines.Line2D([0],[0], color=colors[tr_key], lw = 4, label=train_method.name)
         for (tr_key, train_method) in TRAIN_METHODS.items()
     ]
-    axs[-1].legend(handles=legend_items, loc=(0.05, 0.65), fontsize=8.0, framealpha=1.0)
+    axs[-1].legend(handles=legend_items, loc=(0.05, 0.58), fontsize=8.0, framealpha=1.0)
     
-    if mode==1:
-        plt.subplots_adjust(top=0.8)
+    plt.subplots_adjust(top=0.79, bottom=0.2, left=0.045, right=0.988)
     
 @safeclose
 def make_plots(mode=0):
