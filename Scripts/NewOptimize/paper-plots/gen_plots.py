@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # command-line arguments
     parser = argparse.ArgumentParser(description='Generates plots for the paper.')
     _group = parser.add_mutually_exclusive_group(required=True)
-    _group.add_argument('--plots', default=None, nargs='+',
+    _group.add_argument('plots', default=None, nargs='*',
                     help='Which plot to make')
     _group.add_argument('--all', action='store_true',
                     help='Generate all plots')

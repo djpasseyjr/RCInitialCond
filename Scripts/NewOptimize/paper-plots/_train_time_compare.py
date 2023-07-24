@@ -61,9 +61,15 @@ def collect_results2(mode=0):
                 n, train_time),
                 results
             ) = pickle.load(file)
-        
-        all_results[(pred_type, system, aug_type, init_cond)][train_time] = np.array(results[pred_type])
-    
+            
+            if init_cond == "random" and pred_type == "continue":
+                init_cond = "pseudoinverse"
+            
+        if (pred_type, system, aug_type, init_cond) in all_results:
+            all_results[(pred_type, system, aug_type, init_cond)][train_time] = np.array(results[pred_type])
+        else:
+            pass
+            #print("Ignored", filename)
     #for k,v in all_results.items():
     #    print(f"{k}: {len(v)}")
     
@@ -83,6 +89,9 @@ def indiv_plot(data, pred_type, mode=0):
             lower_err = []
             upper_err = []
             std_err = []
+            std_dev = []
+            
+            print(pred_type.pred_type, train_method.window_type, train_method.icm_type, len(data))
             
             for tr_time, vpts in data[
                 (pred_type.pred_type, system, train_method.window_type, train_method.icm_type)
@@ -107,16 +116,25 @@ def indiv_plot(data, pred_type, mode=0):
                 std_err.append(
                     np.sqrt(np.mean((vpts-mean)**2))/np.sqrt(len(vpts))
                 )
+                std_dev.append(
+                    np.sqrt(np.mean((vpts-mean)**2))
+                )
             
             times = np.array(times)
             means = np.array(means)
             lower_err = np.array(lower_err)
             upper_err = np.array(upper_err)
             std_err = np.array(std_err)
+            std_dev = np.array(std_dev)
             #lower_err = std_err
             #upper_err = std_err
+            lower_err = std_dev
+            upper_err = std_dev
             
             order = np.argsort(times)
+            
+            if train_method.icm_type == "pseudoinverse":
+                print(means, lower_err, upper_err)
             
             
             #errs = np.row_stack((lower_err, upper_err))
@@ -155,8 +173,8 @@ def indiv_plot(data, pred_type, mode=0):
         else:
             train_times = {
                 'lorenz': [1.0, 3.0, 10.0, 30.0, 60.0, 100.0],
-                'thomas': [10.0, 30.0, 100.0, 300.0, 1000.0],
-                'rossler': [5.0, 15.0, 50.0, 150.0, 500.0],
+                'thomas': [10.0, 30.0, 100.0, 300.0, 1000.0, 3000.0],
+                'rossler': [5.0, 15.0, 50.0, 150.0, 500.0, 1500.0],
             }
         ax.set_xticks(
             train_times[system], 

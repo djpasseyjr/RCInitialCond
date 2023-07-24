@@ -39,11 +39,11 @@ def create_icmap_example_plot(seed=73323):
         
         # Plot the trajectory
         train_split = num_pts - 10
-        ax_sys.plot(U[:,0], U[:,1], U[:,2], '-', alpha=0.7, color=(0.0, 0.3, 0.8))
-        train_color = (0.3, 0.3, 0.1)
+        ax_sys.plot(U[:,0], U[:,1], U[:,2], '-', alpha=0.7, color=(0.5, 0.7, 0.8))
+        train_color = (0.0, 0.3, 0.8)
         ax_sys.plot(tr_signal[:train_split,0], tr_signal[:train_split,1], tr_signal[:train_split,2], '-', color=train_color)
         ax_sys.plot(tr_signal[train_split:,0], tr_signal[train_split:,1], tr_signal[train_split:,2], '--', color=train_color)
-        ax_sys.plot(tr_signal[0,0], tr_signal[0,1], tr_signal[0,2], 'k*', markersize=12.)
+        ax_sys.plot(tr_signal[0,0], tr_signal[0,1], tr_signal[0,2], '*', markersize=12., color=train_color)
         
         clear_3d_axis_labels(ax_sys)
         #ax_sys.axis('off')
@@ -65,8 +65,8 @@ def create_icmap_example_plot(seed=73323):
             'fontsize': 16,
             'horizontalalignment': 'center',
         }
-        ax_sys.text(tr_signal[0,0], tr_signal[0,1], tr_signal[0,2]+5, r"$\mathbf{v}$", **textparams)
-        ax_res.text(tr_t[0], 1.0, r"$\mathbf{r}_T$", **textparams)
+        ax_sys.text(tr_signal[0,0], tr_signal[0,1], tr_signal[0,2]+5, r"$\mathbf{u}$", **textparams)
+        ax_res.text(tr_t[0], -1.07, r"$\mathbf{r}_0$", **textparams) # was 1.0
         
         bounding_box = ax_res.get_position()
         height = 0.5
@@ -94,6 +94,7 @@ def create_icmap_example_plot(seed=73323):
         
         ax_overlay.add_patch(matplotlib.patches.FancyArrowPatch(path=path1, arrowstyle="->", mutation_scale=20.))
         ax_overlay.add_patch(matplotlib.patches.FancyArrowPatch(path=path2, arrowstyle="<-", mutation_scale=20.))
+
         textparams = {
             'fontsize': 18,
             'horizontalalignment': 'center',

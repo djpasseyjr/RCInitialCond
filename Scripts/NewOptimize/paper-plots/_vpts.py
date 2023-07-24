@@ -61,6 +61,25 @@ def create_subplot(ax, data, system, pred_type, colors):
     Data should be a dictionary of the individual things
     """
     import seaborn
+    
+    right_bound = {
+        'lorenz': 9.0,
+        'rossler': 150.0,
+        'thomas': 250.0,
+    }[system]
+    top_bound = {
+        'local':{
+            'lorenz': 0.4,
+            'rossler': 0.02,
+            'thomas': 0.01,
+        },
+        'global':{
+            'lorenz': 0.3,
+            'rossler': 0.02,
+            'thomas': 0.012,
+        },
+    }[pred_type.key][system]
+    
     # Draw all the stuff
     max_vpt = 0
     for i, (tr_key, train_method) in enumerate(TRAIN_METHODS.items()):
@@ -72,7 +91,7 @@ def create_subplot(ax, data, system, pred_type, colors):
                 'lorenz': 10.0,
                 'thomas': 7.0,
                 'rossler': 10.0,
-            }[system]
+            }[system]*0+1
         else:
             kernel_scale = 1.0
         
@@ -88,7 +107,7 @@ def create_subplot(ax, data, system, pred_type, colors):
         #   most of these
         #TODO find a way to automate this
         mean_plot_height = {
-            ('lorenz', 'standard', 'local'):    0.60,
+            ('lorenz', 'standard', 'local'):    0.71,
             ('lorenz', 'standard', 'global'):   0.999,
             ('lorenz', 'icm', 'local'):         0.55,
             ('lorenz', 'icm', 'global'):        0.999,
@@ -98,38 +117,26 @@ def create_subplot(ax, data, system, pred_type, colors):
             ('rossler', 'standard', 'global'):  0.999,
             ('rossler', 'icm', 'local'):        0.76,
             ('rossler', 'icm', 'global'):       0.999,
-            ('rossler', 'windows', 'local'):    0.72,
+            ('rossler', 'windows', 'local'):    0.71,
             ('rossler', 'windows', 'global'):   0.74,
-            ('thomas', 'standard', 'local'):    0.82,
+            ('thomas', 'standard', 'local'):    0.62,
             ('thomas', 'standard', 'global'):   0.999,
             ('thomas', 'icm', 'local'):         0.77,
             ('thomas', 'icm', 'global'):        0.999,
             ('thomas', 'windows', 'local'):     0.72,
-            ('thomas', 'windows', 'global'):    0.52,
+            ('thomas', 'windows', 'global'):    0.52*4/3,
         }[(system, tr_key, pred_type.key)]
         
-        ax.axvline(x=np.mean(data_item), color=colors[tr_key], linestyle="--",alpha=0.8, ymax=mean_plot_height)
+        line_x = np.mean(data_item)
+        if tr_key == 'standard' and pred_type.key=='global':
+            line_x += right_bound/200
+            
+        ax.axvline(x=line_x, color=colors[tr_key], linestyle="--",alpha=0.8, ymax=mean_plot_height)
         
         max_vpt = max(max_vpt, np.max(data_item))
     
     # Mess around with the bounds
-    right_bound = {
-        'lorenz': 9.0,
-        'rossler': 150.0,
-        'thomas': 250.0,
-    }[system]
-    top_bound = {
-        'local':{
-            'lorenz': 0.4,
-            'rossler': 0.02,
-            'thomas': 0.01,
-        },
-        'global':{
-            'lorenz': 0.3,
-            'rossler': 0.02,
-            'thomas': 0.016,
-        },
-    }[pred_type.key][system]
+    
     
     ax.axis([0, right_bound, 0, top_bound])
     

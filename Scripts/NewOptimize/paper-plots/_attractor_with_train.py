@@ -73,9 +73,10 @@ def attractor_with_train_signal(system, train_method, c, n, idx):
         ax_samples.scatter(x,y,z, c=c, s=2., marker='.')
         
         # plot training signal
-        tr_signal_color = (0.3, 0.3, 0.1)
+        #tr_signal_color = (0.3, 0.3, 0.1)
+        tr_signal_color = (0.0, 0.3, 0.8)
         ax_tr.plot(Utr[:,0], Utr[:,1], Utr[:,2], '-', color=tr_signal_color)
-        ax_tr.plot(Utr[0,0], Utr[0,1], Utr[0,2], 'k*', markersize=16)
+        #ax_tr.plot(Utr[0,0], Utr[0,1], Utr[0,2], 'k*', markersize=16)
         # If we're using the windowed method, plot every point used as an initial condition
         if train_method.key == 'windows':
             # find the dt
@@ -84,8 +85,8 @@ def attractor_with_train_signal(system, train_method, c, n, idx):
             window_samples = round(params['window'] / dt)
             window_step = round((1-params['overlap']) * window_samples)
             
-            ic_slice = slice(window_step, -window_samples, window_step)
-            ax_tr.plot(Utr[ic_slice,0], Utr[ic_slice,1], Utr[ic_slice,2], 'ko', markersize=2, alpha=0.7)
+            ic_slice = slice(0, -window_samples, window_step)
+            ax_tr.plot(Utr[ic_slice,0], Utr[ic_slice,1], Utr[ic_slice,2], 'o', color=tr_signal_color, markersize=2, alpha=0.7)
             
         clear_3d_axis_labels(ax_tr)
         clear_3d_axis_labels(ax_samples)

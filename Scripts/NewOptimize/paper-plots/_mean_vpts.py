@@ -80,7 +80,7 @@ def create_subplot(ax, data, system, pred_type, colors):
                 'lorenz': 10.0,
                 'thomas': 7.0,
                 'rossler': 10.0,
-            }[system]
+            }[system]*100
         else:
             kernel_scale = 1.0
         
