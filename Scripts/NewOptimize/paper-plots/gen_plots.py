@@ -3,7 +3,7 @@ import argparse
 import os
 import subprocess
 
-def empty_func():
+def empty_func(*args, **kwargs):
     pass
 
 def save_figs(filename, _folder, gen_func, _extension='pdf', fn_args=tuple(), fn_kwargs=dict(), bbox_inches='tight', **savefig_args):
@@ -35,12 +35,11 @@ def save_figs(filename, _folder, gen_func, _extension='pdf', fn_args=tuple(), fn
 if __name__ == "__main__":
     # command-line arguments
     parser = argparse.ArgumentParser(description='Generates plots for the paper.')
-    _group = parser.add_mutually_exclusive_group(required=True)
-    _group.add_argument('plots', default=None, nargs='*',
+    parser.add_argument('plots', default=None, nargs='*',
                     help='Which plot to make')
-    _group.add_argument('--all', action='store_true',
+    parser.add_argument('--all', action='store_true',
                     help='Generate all plots')
-    _group.add_argument('--list', action='store_true',
+    parser.add_argument('--list', action='store_true',
                     help='Lists all available plots')
     parser.add_argument('--draft', action='store_true',
                     help='Create plots as .png files (faster but lower quality)')
@@ -57,6 +56,9 @@ if __name__ == "__main__":
     import _attractor_compare
     import _train_time_compare
     import _abstract_reservoir
+    import _error_bounds
+    import _window_overlap_vpts
+    import _windowlengths
 
     PLOT_ITEMS = [
         ('vpts', _vpts.create_vpt_plots, list(), dict()),
@@ -73,6 +75,9 @@ if __name__ == "__main__":
         ('train-time-compare-2', _train_time_compare.make_plots, [], dict(mode=1), {'bbox_inches':None}),
         #('train-time-compare', _train_time_compare.make_plots, list(), dict()),
         ('abstract-reservoir', _abstract_reservoir.main, list(), dict()),
+        ('error-bounds', _error_bounds.create_plot, list(), dict()),
+        ('window-overlap', _window_overlap_vpts.create_plots, list(), dict()),
+        ('windowlengths', _windowlengths.all_plots_flat, list(), dict(), dict(_extension='png', dpi=500, bbox_inches=None)),
     ]
 
     
