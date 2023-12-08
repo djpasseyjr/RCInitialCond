@@ -71,6 +71,7 @@ def main(opt_params, err_amt, parallel_profile):
     real_get_train_test_data = optimizer.system.get_train_test_data
     
     def replaced_get_train_test_data(self, *args, **kwargs):
+        import numpy as np
         tr, Utr, ts, Uts = real_get_train_test_data(*args, **kwargs)
         Utr += np.random.normal(scale=err_amt, size=Utr.shape)
         return tr, Utr, ts, Uts
